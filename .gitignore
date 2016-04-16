@@ -1,7 +1,14 @@
+.gradle
+build
 *.class
 
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
+
+# Editor Files
+*.iml
+*.ipr
+*.iws
 
 # Package Files #
 *.jar
