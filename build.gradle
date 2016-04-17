@@ -1,16 +1,51 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE"
+    }
+}
+
 apply plugin: "groovy"
 apply plugin: "idea"
+apply plugin: "maven-publish"
+apply plugin: "io.spring.dependency-management"
 
 repositories {
     jcenter()
 }
 
+dependencyManagement {
+    imports {
+        mavenBom 'com.amazonaws:aws-java-sdk-bom:1.10.69'
+    }
+}
+
 dependencies {
+    // Gradle/Groovy
     compile localGroovy()
     compile gradleApi()
-    compile("com.amazonaws:aws-java-sdk:1.10.69")
+    // AWS
+    compile("com.amazonaws:aws-java-sdk-config")
+    compile("com.amazonaws:aws-java-sdk-core")
+    compile("com.amazonaws:aws-java-sdk-ecs")
+    compile("com.amazonaws:aws-java-sdk-iam")
+    compile("com.amazonaws:aws-java-sdk-elasticloadbalancing")
+    compile("com.amazonaws:aws-java-sdk-route53")
+    compile("com.amazonaws:aws-java-sdk-s3")
+    compile("com.amazonaws:aws-java-sdk-sts")
+    // Specification Testing
     testCompile("org.spockframework:spock-core:1.0-groovy-2.4") {
         exclude module: "groovy-all"
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
     }
 }
 

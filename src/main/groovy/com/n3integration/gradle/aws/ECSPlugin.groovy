@@ -16,14 +16,39 @@
  */
 package com.n3integration.gradle.aws
 
+import com.n3integration.gradle.aws.models.Cluster
+import com.n3integration.gradle.aws.tasks.CreateClusterTask
+import com.n3integration.gradle.aws.tasks.DeleteClusterTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 
 class ECSPlugin implements Plugin<Project> {
 
+    public static final String AWS_SDK_VERSION = "1.10.69"
+    public static final String AWS_JAVA_CONFIGURATION_NAME = "awsJava"
+
     @Override
     void apply(Project project) {
-        AWSExtension awsExtension = project.extensions.getByType(AWSExtension)
+        project.tasks.create("createCluster", CreateClusterTask)
+        project.tasks.create("deleteCluster", DeleteClusterTask)
+        project.extensions.create("aws",
+            AWSExtension,
+            project.container(Cluster))
 
+        project.configurations.create(AWS_JAVA_CONFIGURATION_NAME)
+                .setVisible(false)
+                .setTransitive(true)
+                .setDescription('The AWS SDK to be used for this project.')
+
+        Configuration config = project.configurations[AWS_JAVA_CONFIGURATION_NAME]
+        config.defaultDependencies { dependencies ->
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-config:${AWS_SDK_VERSION}"))
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-core:${AWS_SDK_VERSION}"))
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-ecs:${AWS_SDK_VERSION}"))
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-iam:${AWS_SDK_VERSION}"))
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-sts:${AWS_SDK_VERSION}"))
+            dependencies.add(project.dependencies.create('org.slf4j:slf4j-simple:1.7.5'))
+        }
     }
 }

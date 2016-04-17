@@ -16,12 +16,45 @@
  */
 package com.n3integration.gradle.aws
 
+import com.n3integration.gradle.aws.models.Cluster
+import com.n3integration.gradle.aws.models.Credentials
+import org.gradle.api.NamedDomainObjectContainer
+
+/**
+ * Gradle {@code aws} extension to simplify the configuration of AWS
+ * orchestration
+ */
 class AWSExtension {
 
-    String accessKey
-    String secretKey
+    final NamedDomainObjectContainer<Cluster> clusters
+
+    String profile
+    String region = "us-east-1"
+
+    Cluster defaultCluster
+
+    Credentials credentials
+//    SecurityTokenCredentials securityTokenCredentials
+
+    AWSExtension(clusters) {
+        this.clusters = clusters
+    }
 
     void credentials(Closure closure) {
+        this.credentials = new Credentials()
+        this.credentials.accessKey = closure.getProperty("accessKey")
+        this.credentials.secretKey = closure.getProperty("secretKey")
+    }
 
+//    void securityTokenCredentials(Closure closure) {
+//        this.securityTokenCredentials = new SecurityTokenCredentials()
+//        this.securityTokenCredentials.roleArn  = closure.getProperty("roleArn")
+//        this.securityTokenCredentials.accessKey = closure.getProperty("accessKey")
+//        this.securityTokenCredentials.secretKey = closure.getProperty("secretKey")
+//        this.securityTokenCredentials.sessionToken = closure.getProperty("sessionToken")
+//    }
+
+    void clusters(Closure closure) {
+        clusters.configure(closure)
     }
 }
