@@ -16,8 +16,10 @@
  */
 package com.n3integration.gradle.aws
 
+import com.amazonaws.regions.Regions
 import com.n3integration.gradle.aws.models.Cluster
 import com.n3integration.gradle.aws.models.Credentials
+import com.n3integration.gradle.aws.models.SecurityTokenCredentials
 import org.gradle.api.NamedDomainObjectContainer
 
 /**
@@ -29,12 +31,12 @@ class AWSExtension {
     final NamedDomainObjectContainer<Cluster> clusters
 
     String profile
-    String region = "us-east-1"
+    String region = Regions.US_EAST_1.name
 
     Cluster defaultCluster
 
     Credentials credentials
-//    SecurityTokenCredentials securityTokenCredentials
+    SecurityTokenCredentials securityTokenCredentials
 
     AWSExtension(clusters) {
         this.clusters = clusters
@@ -46,13 +48,13 @@ class AWSExtension {
         this.credentials.secretKey = closure.getProperty("secretKey")
     }
 
-//    void securityTokenCredentials(Closure closure) {
-//        this.securityTokenCredentials = new SecurityTokenCredentials()
-//        this.securityTokenCredentials.roleArn  = closure.getProperty("roleArn")
-//        this.securityTokenCredentials.accessKey = closure.getProperty("accessKey")
-//        this.securityTokenCredentials.secretKey = closure.getProperty("secretKey")
-//        this.securityTokenCredentials.sessionToken = closure.getProperty("sessionToken")
-//    }
+    void securityTokenCredentials(Closure closure) {
+        this.securityTokenCredentials = new SecurityTokenCredentials()
+        this.securityTokenCredentials.roleArn  = closure.getProperty("roleArn")
+        this.securityTokenCredentials.accessKey = closure.getProperty("accessKey")
+        this.securityTokenCredentials.secretKey = closure.getProperty("secretKey")
+        this.securityTokenCredentials.sessionToken = closure.getProperty("sessionToken")
+    }
 
     void clusters(Closure closure) {
         clusters.configure(closure)

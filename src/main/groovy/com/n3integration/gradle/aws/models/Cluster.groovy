@@ -19,7 +19,6 @@ package com.n3integration.gradle.aws.models
 class Cluster {
 
     String name
-    String region = "us-east-1"
 
     Cluster(String name) {
         this.name = name

@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration
 
 class ECSPlugin implements Plugin<Project> {
 
+    public static final String AWS_EXTENSION = "aws"
     public static final String AWS_SDK_VERSION = "1.10.69"
     public static final String AWS_JAVA_CONFIGURATION_NAME = "awsJava"
 
@@ -32,7 +33,8 @@ class ECSPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.tasks.create("createCluster", CreateClusterTask)
         project.tasks.create("deleteCluster", DeleteClusterTask)
-        project.extensions.create("aws",
+
+        project.extensions.create(AWS_EXTENSION,
             AWSExtension,
             project.container(Cluster))
 
