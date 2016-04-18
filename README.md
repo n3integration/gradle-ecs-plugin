@@ -4,6 +4,17 @@ Gradle plugin for EC2 Container Service orchestration
 ### Usage
 The AWS credentials are pulled from either environment variables or from a `~/.aws/credentials` file. Refer to Amazon's [official](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-environment) documentation for more information.
 ```gradle
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.n3integration:gradle-ecs-plugin:0.1.0"
+    }
+}
+
+apply plugin: 'aws-ecs'
+
 ecs {
     region = "us-east-1"
     clusters {
