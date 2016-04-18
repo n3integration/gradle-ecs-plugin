@@ -14,7 +14,7 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws.tasks
+package com.n3integration.gradle.ecs.tasks
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
@@ -26,8 +26,8 @@ class DefaultAWSTask extends DefaultTask {
 
     def AWSCredentials getCredentials() {
         if(credentials == null) {
-            if(project.aws.credentials) {
-                credentials = project.aws.credentials.toCredentials()
+            if(project.ecs.credentials) {
+                credentials = project.ecs.credentials.toCredentials()
             }
             else {
                 def credentialsProvider = new DefaultAWSCredentialsProviderChain()

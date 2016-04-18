@@ -14,16 +14,16 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws.models
+package com.n3integration.gradle.ecs.models
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.BasicAWSCredentials
 
 class Credentials {
-    String accessKey
+    String accessKeyId
     String secretKey
 
     def AWSCredentials toCredentials() {
-        new BasicAWSCredentials(this.accessKey, this.secretKey)
+        new BasicAWSCredentials(this.accessKeyId, this.secretKey)
     }
 }

@@ -14,8 +14,9 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws.tasks
+package com.n3integration.gradle.ecs.tasks
 
+import com.amazonaws.services.ecs.model.ClusterNotFoundException
 import com.amazonaws.services.ecs.model.DeleteClusterRequest
 import org.gradle.api.tasks.TaskAction
 
@@ -27,10 +28,16 @@ class DeleteClusterTask extends DefaultClusterTask {
 
     @TaskAction
     def deleteClusterAction() {
-        super.execute { ecsClient ->
-            logger.quiet("Deleting ${clusterName} cluster...")
-            def result = ecsClient.deleteCluster(new DeleteClusterRequest().withCluster(clusterName))
-            logger.quiet("${clusterName}:${result.cluster?.status}")
+        super.execute { ecsClient, cluster ->
+            try {
+                logger.quiet("Deleting ${clusterName} cluster...")
+                def result = ecsClient.deleteCluster(new DeleteClusterRequest()
+                    .withCluster(clusterName))
+                logger.debug("${clusterName}:${result.cluster?.status}")
+            }
+            catch(ClusterNotFoundException ex) {
+                logger.warn("${clusterName} not found")
+            }
         }
     }
 }

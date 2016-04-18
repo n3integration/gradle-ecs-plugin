@@ -14,29 +14,39 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws
+package com.n3integration.gradle.ecs
 
-import com.n3integration.gradle.aws.models.Cluster
-import com.n3integration.gradle.aws.tasks.CreateClusterTask
-import com.n3integration.gradle.aws.tasks.DeleteClusterTask
+import com.n3integration.gradle.ecs.models.Cluster
+import com.n3integration.gradle.ecs.models.Container
+import com.n3integration.gradle.ecs.models.ContainerGroup
+import com.n3integration.gradle.ecs.tasks.CreateClusterTask
+import com.n3integration.gradle.ecs.tasks.DeleteClusterTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
 class ECSPlugin implements Plugin<Project> {
 
-    public static final String AWS_EXTENSION = "aws"
+    public static final String ECS_EXTENSION = "ecs"
     public static final String AWS_SDK_VERSION = "1.10.69"
     public static final String AWS_JAVA_CONFIGURATION_NAME = "awsJava"
 
     @Override
     void apply(Project project) {
+        def clusters = project.container(Cluster)
+        clusters.all { cluster ->
+            containers = project.container(Container)
+            groups = project.container(ContainerGroup)
+            groups.all { group ->
+                containers = project.container(Container)
+            }
+        }
+
         project.tasks.create("createCluster", CreateClusterTask)
+//        project.tasks.create("up", UpTask) // FIXME: requires EC2 instances
         project.tasks.create("deleteCluster", DeleteClusterTask)
 
-        project.extensions.create(AWS_EXTENSION,
-            AWSExtension,
-            project.container(Cluster))
+        project.extensions.create(ECS_EXTENSION, ECSExtension, clusters)
 
         project.configurations.create(AWS_JAVA_CONFIGURATION_NAME)
                 .setVisible(false)

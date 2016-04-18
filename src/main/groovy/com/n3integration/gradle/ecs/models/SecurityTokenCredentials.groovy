@@ -14,23 +14,23 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws.tasks
+package com.n3integration.gradle.ecs.models
 
-import com.amazonaws.services.ecs.model.CreateClusterRequest
-import org.gradle.api.tasks.TaskAction
+import com.amazonaws.auth.AWSCredentials
+import com.amazonaws.auth.BasicSessionCredentials
 
-class CreateClusterTask extends DefaultClusterTask {
+class SecurityTokenCredentials extends Credentials {
 
-    CreateClusterTask() {
-        this.description = "Creates a new EC2 Container Service cluster"
-    }
+    String roleArn
+    String sessionToken
+    String roleSessionName = "session"
 
-    @TaskAction
-    def createClusterAction() {
-        super.execute { ecsClient ->
-            logger.quiet("Creating ${clusterName} cluster...")
-            def result = ecsClient.createCluster(new CreateClusterRequest().withClusterName(clusterName))
-            logger.quiet("${clusterName}:${result.cluster?.status}")
+    def AWSCredentials toCredentials() {
+        if(sessionToken) {
+            new BasicSessionCredentials(this.accessKeyId, this.secretKey, this.sessionToken)
+        }
+        else {
+            super.toCredentials()
         }
     }
 }

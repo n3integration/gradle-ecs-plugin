@@ -14,13 +14,37 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws.models
+package com.n3integration.gradle.ecs.models
+
+import org.gradle.api.NamedDomainObjectContainer
 
 class Cluster {
 
-    String name
+    final String name
+    String region
+    NamedDomainObjectContainer<Container> containers
+    NamedDomainObjectContainer<ContainerGroup> groups
 
     Cluster(String name) {
         this.name = name
+    }
+
+    Cluster(String name, containers) {
+        this.name = name
+        this.containers = containers
+    }
+
+    Cluster(String name, containers, groups) {
+        this.name = name
+        this.containers = containers
+        this.groups = groups
+    }
+
+    void containers(Closure closure) {
+        containers.configure(closure)
+    }
+
+    void groups(Closure closure) {
+        groups.configure(closure)
     }
 }

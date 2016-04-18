@@ -35,7 +35,10 @@ dependencies {
     compile("com.amazonaws:aws-java-sdk-route53")
     compile("com.amazonaws:aws-java-sdk-s3")
     compile("com.amazonaws:aws-java-sdk-sts")
+    // Yaml
+    compile("org.yaml:snakeyaml:1.17")
     // Specification Testing
+    testCompile("cglib:cglib-nodep:2.2")
     testCompile("org.spockframework:spock-core:1.0-groovy-2.4") {
         exclude module: "groovy-all"
     }
@@ -50,7 +53,7 @@ publishing {
 }
 
 group   = "com.n3integration"
-version = "0.0.1"
+version = "0.1.0"
 
 ext.compatibilityVersion = "1.7"
 sourceCompatibility = compatibilityVersion

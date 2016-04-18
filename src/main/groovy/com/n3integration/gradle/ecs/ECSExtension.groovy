@@ -14,19 +14,19 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws
+package com.n3integration.gradle.ecs
 
 import com.amazonaws.regions.Regions
-import com.n3integration.gradle.aws.models.Cluster
-import com.n3integration.gradle.aws.models.Credentials
-import com.n3integration.gradle.aws.models.SecurityTokenCredentials
+import com.n3integration.gradle.ecs.models.Cluster
+import com.n3integration.gradle.ecs.models.Credentials
+import com.n3integration.gradle.ecs.models.SecurityTokenCredentials
 import org.gradle.api.NamedDomainObjectContainer
 
 /**
- * Gradle {@code aws} extension to simplify the configuration of AWS
+ * Gradle {@code aws} extension to simplify the configuration of ECS
  * orchestration
  */
-class AWSExtension {
+class ECSExtension {
 
     final NamedDomainObjectContainer<Cluster> clusters
 
@@ -38,20 +38,20 @@ class AWSExtension {
     Credentials credentials
     SecurityTokenCredentials securityTokenCredentials
 
-    AWSExtension(clusters) {
+    ECSExtension(clusters) {
         this.clusters = clusters
     }
 
     void credentials(Closure closure) {
         this.credentials = new Credentials()
-        this.credentials.accessKey = closure.getProperty("accessKey")
+        this.credentials.accessKey = closure.getProperty("accessKeyId")
         this.credentials.secretKey = closure.getProperty("secretKey")
     }
 
     void securityTokenCredentials(Closure closure) {
         this.securityTokenCredentials = new SecurityTokenCredentials()
         this.securityTokenCredentials.roleArn  = closure.getProperty("roleArn")
-        this.securityTokenCredentials.accessKey = closure.getProperty("accessKey")
+        this.securityTokenCredentials.accessKey = closure.getProperty("accessKeyId")
         this.securityTokenCredentials.secretKey = closure.getProperty("secretKey")
         this.securityTokenCredentials.sessionToken = closure.getProperty("sessionToken")
     }

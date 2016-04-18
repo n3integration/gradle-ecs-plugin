@@ -14,23 +14,24 @@
  *  limitations under the License.
  *
  */
-package com.n3integration.gradle.aws.tasks
+package com.n3integration.gradle.ecs.models
 
-import com.amazonaws.services.ecs.AmazonECSClient
+import org.gradle.api.NamedDomainObjectContainer
 
-class DefaultClusterTask extends DefaultAWSTask {
+class ContainerGroup {
 
-    String clusterName
+    final String name
+    NamedDomainObjectContainer<Container> containers
 
-    DefaultClusterTask() {
-        this.group = "EC2 Container Service"
+    ContainerGroup(name) {
+        this.name = name
     }
 
-    def execute(action) {
-        if(clusterName == null && (project.aws && project.aws.defaultCluster)) {
-            clusterName = project.aws.defaultCluster.name
-        }
-        def ecsClient = new AmazonECSClient(getCredentials())
-        action(ecsClient)
+    ContainerGroup(name, containers) {
+        this.containers = containers
+    }
+
+    void containers(Closure closure) {
+        this.containers.configure(closure)
     }
 }
