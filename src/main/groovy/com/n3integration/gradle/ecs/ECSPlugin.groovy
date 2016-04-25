@@ -21,6 +21,7 @@ import com.n3integration.gradle.ecs.models.Container
 import com.n3integration.gradle.ecs.models.ContainerGroup
 import com.n3integration.gradle.ecs.tasks.CreateClusterTask
 import com.n3integration.gradle.ecs.tasks.DeleteClusterTask
+import com.n3integration.gradle.ecs.tasks.EcsUpTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -43,7 +44,7 @@ class ECSPlugin implements Plugin<Project> {
         }
 
         project.tasks.create("createCluster", CreateClusterTask)
-//        project.tasks.create("up", UpTask) // FIXME: requires EC2 instances
+        project.tasks.create("ecsUp", EcsUpTask)
         project.tasks.create("deleteCluster", DeleteClusterTask)
 
         project.extensions.create(ECS_EXTENSION, ECSExtension, clusters)
@@ -57,6 +58,7 @@ class ECSPlugin implements Plugin<Project> {
         config.defaultDependencies { dependencies ->
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-config:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-core:${AWS_SDK_VERSION}"))
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-ec2:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-ecs:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-iam:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-sts:${AWS_SDK_VERSION}"))

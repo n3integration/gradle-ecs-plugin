@@ -29,14 +29,17 @@ dependencies {
     // AWS
     compile("com.amazonaws:aws-java-sdk-config")
     compile("com.amazonaws:aws-java-sdk-core")
+    compile("com.amazonaws:aws-java-sdk-ec2")
     compile("com.amazonaws:aws-java-sdk-ecs")
     compile("com.amazonaws:aws-java-sdk-iam")
     compile("com.amazonaws:aws-java-sdk-elasticloadbalancing")
     compile("com.amazonaws:aws-java-sdk-route53")
     compile("com.amazonaws:aws-java-sdk-s3")
     compile("com.amazonaws:aws-java-sdk-sts")
+    // Guava
+    compile("com.google.guava:guava:19.0")
     // Yaml
-    compile("org.yaml:snakeyaml:1.17")
+//    compile("org.yaml:snakeyaml:1.17")
     // Specification Testing
     testCompile("cglib:cglib-nodep:2.2")
     testCompile("org.spockframework:spock-core:1.0-groovy-2.4") {

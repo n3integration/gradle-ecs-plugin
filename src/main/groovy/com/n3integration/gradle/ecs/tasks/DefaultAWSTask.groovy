@@ -17,10 +17,13 @@
 package com.n3integration.gradle.ecs.tasks
 
 import com.amazonaws.auth.AWSCredentials
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.n3integration.gradle.ecs.AWSAware
 import org.gradle.api.DefaultTask
 
-class DefaultAWSTask extends DefaultTask {
+/**
+ * Base implementation for AWS related tasks
+ */
+class DefaultAWSTask extends DefaultTask implements AWSAware {
 
     AWSCredentials credentials
 
@@ -30,8 +33,7 @@ class DefaultAWSTask extends DefaultTask {
                 credentials = project.ecs.credentials.toCredentials()
             }
             else {
-                def credentialsProvider = new DefaultAWSCredentialsProviderChain()
-                credentials = credentialsProvider.getCredentials()
+                credentials = defaultCredentials()
             }
         }
         credentials

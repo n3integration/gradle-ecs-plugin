@@ -16,7 +16,6 @@
  */
 package com.n3integration.gradle.ecs.tasks
 
-import com.amazonaws.regions.Regions
 import com.amazonaws.services.ecs.AmazonECSClient
 
 /**
@@ -53,9 +52,5 @@ class DefaultClusterTask extends DefaultAWSTask {
 
     private boolean defaultClusterProvided() {
         project.ecs && project.ecs.defaultCluster
-    }
-
-    private Regions getRegion(cluster) {
-        Regions.fromName(cluster?.region ?: project.ecs.region)
     }
 }

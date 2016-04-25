@@ -91,7 +91,7 @@ class Container {
         def ports = port.split(":")
         if(ports.size() > 1) {
             new PortMapping().withContainerPort(ports[0].toInteger())
-                    .withHostPort(ports[1].toInteger())
+                .withHostPort(ports[1].toInteger())
         }
         else {
             new PortMapping().withContainerPort(ports[0].toInteger())

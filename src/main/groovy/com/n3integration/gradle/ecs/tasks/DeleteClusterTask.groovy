@@ -23,12 +23,12 @@ import org.gradle.api.tasks.TaskAction
 class DeleteClusterTask extends DefaultClusterTask {
 
     DeleteClusterTask() {
-        this.description = "Deletes a EC2 Container Service cluster"
+        this.description = "Deletes an EC2 Container Service cluster"
     }
 
     @TaskAction
     def deleteClusterAction() {
-        super.execute { ecsClient, cluster ->
+        Object.execute { ecsClient, cluster ->
             try {
                 logger.quiet("Deleting ${clusterName} cluster...")
                 def result = ecsClient.deleteCluster(new DeleteClusterRequest()

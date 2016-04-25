@@ -22,20 +22,22 @@ class Cluster {
 
     final String name
     String region
+    Ec2InstanceSettings instanceSettings
     NamedDomainObjectContainer<Container> containers
     NamedDomainObjectContainer<ContainerGroup> groups
 
     Cluster(String name) {
         this.name = name
+        this.instanceSettings = new Ec2InstanceSettings(name)
     }
 
     Cluster(String name, containers) {
-        this.name = name
+        this(name)
         this.containers = containers
     }
 
     Cluster(String name, containers, groups) {
-        this.name = name
+        this(name)
         this.containers = containers
         this.groups = groups
     }
@@ -46,5 +48,15 @@ class Cluster {
 
     void groups(Closure closure) {
         groups.configure(closure)
+    }
+
+    void instanceSettings(Closure closure) {
+        instanceSettings.ami = closure.getProperty("ami") ?: Ec2InstanceSettings.DEFAULT_AMI
+        instanceSettings.type = closure.getProperty("type") ?: Ec2InstanceSettings.DEFAULT_TYPE
+        instanceSettings.min = Integer.valueOf(closure.getProperty("min")) ?: Ec2InstanceSettings.DEFAULT_MIN
+        instanceSettings.max = Integer.valueOf(closure.getProperty("max")) ?: Ec2InstanceSettings.DEFAULT_MAX
+        if(closure.hasProperty("securityGroups")) {
+            instanceSettings.securityGroups = closure.getProperty("securityGroups")
+        }
     }
 }
