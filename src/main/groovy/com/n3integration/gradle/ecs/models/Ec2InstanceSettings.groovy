@@ -16,6 +16,7 @@
  */
 package com.n3integration.gradle.ecs.models
 
+import com.amazonaws.services.ec2.model.IamInstanceProfileSpecification
 import com.google.common.io.BaseEncoding
 import groovy.text.SimpleTemplateEngine
 
@@ -25,8 +26,8 @@ class Ec2InstanceSettings {
 
     static final int DEFAULT_MIN        = 1
     static final int DEFAULT_MAX        = DEFAULT_MIN
-    static final String DEFAULT_AMI     = "ami-6d1c2007"
-    static final String DEFAULT_TYPE    = "t2.micro"
+    static final String DEFAULT_AMI     = "ami-6d1c2007"    // centos 7
+    static final String DEFAULT_TYPE    = "t2.micro"        // free tier
 
     int min = 1
     int max = min
@@ -34,17 +35,26 @@ class Ec2InstanceSettings {
     String type = DEFAULT_TYPE
     String userData
     String subnet
+    String iamInstanceProfileArn
     List<String> securityGroups
 
     Ec2InstanceSettings(String name) {
         this.userData = loadUserDataTemplate(name)
     }
 
+    def IamInstanceProfileSpecification instanceProfileSpecification() {
+        if(iamInstanceProfileArn) {
+            return new IamInstanceProfileSpecification()
+                .withArn(iamInstanceProfileArn)
+        }
+        return null
+    }
+
     static String loadUserDataTemplate(String name) {
         def binding = [name:name]
         def engine = new SimpleTemplateEngine()
         def template = engine.createTemplate(getClass().getResource("/userdata.sh").text)
-            .make(binding)
+                .make(binding)
         BaseEncoding.base64().encode(template.toString().getBytes(Charset.defaultCharset()))
     }
 }

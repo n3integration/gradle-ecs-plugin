@@ -28,7 +28,7 @@ class DeleteClusterTask extends DefaultClusterTask {
 
     @TaskAction
     def deleteClusterAction() {
-        Object.execute { ecsClient, cluster ->
+        super.execute { ecsClient, cluster ->
             try {
                 logger.quiet("Deleting ${clusterName} cluster...")
                 def result = ecsClient.deleteCluster(new DeleteClusterRequest()

@@ -15,9 +15,6 @@
  *
  */
 package com.n3integration.gradle.ecs.tasks
-
-import com.amazonaws.services.ecs.AmazonECSClient
-
 /**
  * Base implementation for ECS tasks
  */
@@ -32,12 +29,7 @@ class DefaultClusterTask extends DefaultAWSTask {
     def execute(action) {
         ensureClusterName()
         def cluster = project.ecs.clusters.findByName(clusterName)
-        action(createClient(), cluster)
-    }
-
-    def AmazonECSClient createClient(cluster) {
-        new AmazonECSClient(getCredentials())
-            .withRegion(getRegion(cluster))
+        action(createEcsClient(), cluster)
     }
 
     private void ensureClusterName() {

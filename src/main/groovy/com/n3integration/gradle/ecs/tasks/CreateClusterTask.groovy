@@ -27,7 +27,7 @@ class CreateClusterTask extends DefaultClusterTask {
 
     @TaskAction
     def createClusterAction() {
-        Object.execute { ecsClient, cluster ->
+        super.execute { ecsClient, cluster ->
             logger.quiet("Creating ${clusterName} cluster...")
             def result = ecsClient.createCluster(new CreateClusterRequest()
                 .withClusterName(clusterName))

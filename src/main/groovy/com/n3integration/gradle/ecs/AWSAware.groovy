@@ -25,6 +25,10 @@ import com.amazonaws.services.ec2.AmazonEC2Client
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.RunInstancesRequest
+import com.amazonaws.services.ecs.AmazonECSClient
+import com.amazonaws.services.ecs.model.ContainerInstance
+import com.amazonaws.services.ecs.model.DescribeContainerInstancesRequest
+import com.amazonaws.services.ecs.model.ListContainerInstancesRequest
 import com.n3integration.gradle.ecs.models.Cluster
 
 import java.nio.file.Files
@@ -38,7 +42,9 @@ trait AWSAware {
         if(!privateKey.exists()) {
             Files.createDirectories(privateKey.getParentFile().toPath())
             Files.createFile(Paths.get(privateKey.getAbsolutePath()))
-            Files.setPosixFilePermissions(Paths.get(privateKey.getAbsolutePath()), ownerReadWritePermissions())
+
+            def permissions = ownerReadWritePermissions()
+            Files.setPosixFilePermissions(Paths.get(privateKey.getAbsolutePath()), permissions)
         }
         if(privateKey.length() == 0) {
             try {
@@ -58,7 +64,7 @@ trait AWSAware {
         return cluster.name
     }
 
-    def List<Instance> createEc2InstancesIfNecessary(Cluster cluster) {
+    def List<Instance> createEc2Instances(Cluster cluster) {
         def ec2Client = createEc2Client(cluster)
         def instanceSettings = cluster.instanceSettings
         def result = ec2Client.runInstances(new RunInstancesRequest()
@@ -69,13 +75,33 @@ trait AWSAware {
             .withKeyName(cluster.name)
             .withUserData(instanceSettings.userData)
             .withSubnetId(instanceSettings.subnet)
+            .withIamInstanceProfile(instanceSettings.instanceProfileSpecification())
             .withSecurityGroupIds(instanceSettings.securityGroups))
 
         result.getReservation().instances
     }
 
+    def List<ContainerInstance> listContainerInstances(Cluster cluster) {
+        def ecsClient = createEcsClient(cluster)
+        def result = ecsClient.listContainerInstances(new ListContainerInstancesRequest()
+            .withCluster(cluster.name))
+
+        def instanceResult = ecsClient.describeContainerInstances(new DescribeContainerInstancesRequest()
+            .withCluster(cluster.name)
+            .withContainerInstances(result.containerInstanceArns))
+
+        instanceResult.containerInstances.findAll { instance ->
+            instance.getStatus().equals("ACTIVE")
+        }
+    }
+
     def AmazonEC2Client createEc2Client(Cluster cluster) {
         new AmazonEC2Client(credentials())
+            .withRegion(getRegion(cluster))
+    }
+
+    def AmazonECSClient createEcsClient(cluster) {
+        new AmazonECSClient(credentials())
             .withRegion(getRegion(cluster))
     }
 

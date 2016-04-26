@@ -54,7 +54,7 @@ class Cluster {
         instanceSettings.ami = closure.getProperty("ami") ?: Ec2InstanceSettings.DEFAULT_AMI
         instanceSettings.type = closure.getProperty("type") ?: Ec2InstanceSettings.DEFAULT_TYPE
         instanceSettings.min = Integer.valueOf(closure.getProperty("min")) ?: Ec2InstanceSettings.DEFAULT_MIN
-        instanceSettings.max = Integer.valueOf(closure.getProperty("max")) ?: Ec2InstanceSettings.DEFAULT_MAX
+        instanceSettings.max = Math.max(instanceSettings.min, Integer.valueOf(closure.getProperty("max")) ?: Ec2InstanceSettings.DEFAULT_MAX)
         if(closure.hasProperty("securityGroups")) {
             instanceSettings.securityGroups = closure.getProperty("securityGroups")
         }
