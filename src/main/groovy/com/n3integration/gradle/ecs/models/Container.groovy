@@ -30,7 +30,7 @@ class Container {
 
     String image
     int instances = 1
-    Integer cpu
+    Integer cpu = 10
     int memory = DEFAULT_MIB_SIZE
     List<String> ports = []
     String entryPoint

@@ -20,9 +20,9 @@ import com.amazonaws.services.ecs.model.ClusterNotFoundException
 import com.amazonaws.services.ecs.model.DeleteClusterRequest
 import org.gradle.api.tasks.TaskAction
 
-class DeleteClusterTask extends DefaultClusterTask {
+class DeleteCluster extends DefaultClusterTask {
 
-    DeleteClusterTask() {
+    DeleteCluster() {
         this.description = "Deletes an EC2 Container Service cluster"
     }
 

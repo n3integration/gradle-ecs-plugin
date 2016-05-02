@@ -18,10 +18,9 @@ package com.n3integration.gradle.ecs
 
 import com.n3integration.gradle.ecs.models.Cluster
 import com.n3integration.gradle.ecs.models.Container
-import com.n3integration.gradle.ecs.models.ContainerGroup
-import com.n3integration.gradle.ecs.tasks.CreateClusterTask
-import com.n3integration.gradle.ecs.tasks.DeleteClusterTask
-import com.n3integration.gradle.ecs.tasks.EcsUpTask
+import com.n3integration.gradle.ecs.tasks.CreateCluster
+import com.n3integration.gradle.ecs.tasks.DeleteCluster
+import com.n3integration.gradle.ecs.tasks.Up
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -35,27 +34,23 @@ class ECSPlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
         def clusters = project.container(Cluster)
-        clusters.all { cluster ->
+        clusters.all {
             containers = project.container(Container)
-            groups = project.container(ContainerGroup)
-            groups.all { group ->
-                containers = project.container(Container)
-            }
         }
 
-        project.tasks.create("createCluster", CreateClusterTask)
-        project.tasks.create("ecsUp", EcsUpTask)
-        project.tasks.create("deleteCluster", DeleteClusterTask)
+        project.tasks.create("createCluster", CreateCluster)
+        project.tasks.create("up", Up)
+        project.tasks.create("deleteCluster", DeleteCluster)
 
         project.extensions.create(ECS_EXTENSION, ECSExtension, clusters)
-
         project.configurations.create(AWS_JAVA_CONFIGURATION_NAME)
-                .setVisible(false)
-                .setTransitive(true)
-                .setDescription('The AWS SDK to be used for this project.')
+            .setVisible(false)
+            .setTransitive(true)
+            .setDescription('The AWS SDK to be used for this project.')
 
         Configuration config = project.configurations[AWS_JAVA_CONFIGURATION_NAME]
         config.defaultDependencies { dependencies ->
+            dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-autoscaling:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-config:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-core:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-ec2:${AWS_SDK_VERSION}"))

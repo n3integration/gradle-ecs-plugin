@@ -24,7 +24,6 @@ class Cluster {
     String region
     Ec2InstanceSettings instanceSettings
     NamedDomainObjectContainer<Container> containers
-    NamedDomainObjectContainer<ContainerGroup> groups
 
     Cluster(String name) {
         this.name = name
@@ -32,31 +31,19 @@ class Cluster {
     }
 
     Cluster(String name, containers) {
-        this(name)
+        this.name = name
         this.containers = containers
-    }
-
-    Cluster(String name, containers, groups) {
-        this(name)
-        this.containers = containers
-        this.groups = groups
+        this.instanceSettings = new Ec2InstanceSettings(name)
     }
 
     void containers(Closure closure) {
         containers.configure(closure)
     }
 
-    void groups(Closure closure) {
-        groups.configure(closure)
-    }
-
-    void instanceSettings(Closure closure) {
-        instanceSettings.ami = closure.getProperty("ami") ?: Ec2InstanceSettings.DEFAULT_AMI
-        instanceSettings.type = closure.getProperty("type") ?: Ec2InstanceSettings.DEFAULT_TYPE
-        instanceSettings.min = Integer.valueOf(closure.getProperty("min")) ?: Ec2InstanceSettings.DEFAULT_MIN
-        instanceSettings.max = Math.max(instanceSettings.min, Integer.valueOf(closure.getProperty("max")) ?: Ec2InstanceSettings.DEFAULT_MAX)
-        if(closure.hasProperty("securityGroups")) {
-            instanceSettings.securityGroups = closure.getProperty("securityGroups")
-        }
+    void instanceSettings(@DelegatesTo(Ec2InstanceSettings) Closure closure) {
+        this.instanceSettings = new Ec2InstanceSettings(name)
+        def clone = closure.rehydrate(instanceSettings, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_ONLY
+        clone()
     }
 }

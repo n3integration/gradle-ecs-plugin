@@ -42,18 +42,18 @@ class ECSExtension {
         this.clusters = clusters
     }
 
-    void credentials(Closure closure) {
+    void credentials(@DelegatesTo(Credentials) Closure closure) {
         this.credentials = new Credentials()
-        this.credentials.accessKey = closure.getProperty("accessKeyId")
-        this.credentials.secretKey = closure.getProperty("secretKey")
+        def clone = closure.rehydrate(credentials, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_ONLY
+        clone()
     }
 
-    void securityTokenCredentials(Closure closure) {
+    void securityTokenCredentials(@DelegatesTo(SecurityTokenCredentials) Closure closure) {
         this.securityTokenCredentials = new SecurityTokenCredentials()
-        this.securityTokenCredentials.roleArn  = closure.getProperty("roleArn")
-        this.securityTokenCredentials.accessKey = closure.getProperty("accessKeyId")
-        this.securityTokenCredentials.secretKey = closure.getProperty("secretKey")
-        this.securityTokenCredentials.sessionToken = closure.getProperty("sessionToken")
+        def clone = closure.rehydrate(securityTokenCredentials, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_ONLY
+        clone()
     }
 
     void clusters(Closure closure) {

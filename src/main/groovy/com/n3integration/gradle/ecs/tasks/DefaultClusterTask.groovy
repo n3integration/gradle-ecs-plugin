@@ -15,10 +15,12 @@
  *
  */
 package com.n3integration.gradle.ecs.tasks
+
+import com.n3integration.gradle.ecs.ECSAware
 /**
  * Base implementation for ECS tasks
  */
-class DefaultClusterTask extends DefaultAWSTask {
+class DefaultClusterTask extends DefaultAWSTask implements ECSAware {
 
     String clusterName
 

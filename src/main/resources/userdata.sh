@@ -32,6 +32,8 @@ if [ -e /etc/redhat-release ]; then
         --env=ECS_LOGLEVEL=info \
         --env=ECS_DATADIR=/data \
         --env=ECS_CLUSTER=${name} \
+        --env=HTTP_PROXY=${proxy} \
+        --env=NO_PROXY=s3.amazon.com \
         amazon/amazon-ecs-agent:latest
 else
     apt-get update -y
@@ -57,5 +59,7 @@ else
         --env=ECS_LOGLEVEL=info \
         --env=ECS_DATADIR=/data \
         --env=ECS_CLUSTER=${name} \
+        --env=HTTP_PROXY=${proxy} \
+        --env=NO_PROXY=s3.amazon.com \
         amazon/amazon-ecs-agent:latest
 fi

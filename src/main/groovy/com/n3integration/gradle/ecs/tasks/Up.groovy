@@ -26,16 +26,19 @@ import com.n3integration.gradle.ecs.models.Container
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
-class EcsUpTask extends DefaultClusterTask {
+import java.nio.file.Files
+
+class Up extends DefaultClusterTask {
 
     def File taskDefDir = new File(project.buildDir, "taskDefs")
 
-    EcsUpTask() {
+    Up() {
         this.description = "Creates the ECS task definition, service, and starts the containers, if necessary"
     }
 
     @TaskAction
     def upAction() {
+        Files.createDirectories(taskDefDir.toPath())
         super.execute { AmazonECSClient ecsClient, Cluster cluster ->
             cluster.containers.all { container ->
                 def taskDef = createTaskDefinition(ecsClient, container)
@@ -52,6 +55,7 @@ class EcsUpTask extends DefaultClusterTask {
         def containerDefinition = container.toDefinition()
 
         def taskDefFile = new File(taskDefDir, "${family}.def")
+
         taskDefFile.text = containerDefinition.toString()
 
         def result = ecsClient.registerTaskDefinition(new RegisterTaskDefinitionRequest()
@@ -64,6 +68,7 @@ class EcsUpTask extends DefaultClusterTask {
 
     def createService(AmazonECSClient ecsClient, Container container, TaskDefinition taskDef) {
         logger.quiet("Creating ${container.name} service...")
+
         def result = ecsClient.createService(new CreateServiceRequest()
             .withCluster(clusterName)
             .withServiceName(container.name)
@@ -76,8 +81,8 @@ class EcsUpTask extends DefaultClusterTask {
 
     def startTasks(AmazonECSClient ecsClient, Cluster cluster, Container container, TaskDefinition taskDef) {
         logger.quiet("Checking container instances...")
-        def containerInstances = listContainerInstances(cluster)
-        if(containerInstances.size() < container.instances) {   // TODO: scale up
+        def containerInstances = listContainerInstances(ecsClient, cluster)
+        if(containerInstances.size() < container.instances) {
             throw new GradleException("insufficient number of container instances registered with ${cluster.name} cluster")
         }
 
