@@ -22,15 +22,22 @@ import com.google.common.collect.Lists
 import com.google.common.io.BaseEncoding
 import groovy.text.SimpleTemplateEngine
 
-import java.nio.charset.Charset
-
 class Ec2InstanceSettings {
 
-    static final String DEFAULT_AMI     = "ami-6d1c2007"    // centos 7
-    static final String DEFAULT_TYPE    = "t2.micro"        // free tier
+    static final String DEFAULT_TYPE    = "t2.micro"    // free tier
+    static final String DEFAULT_REGION  = "us-east-1"
+    static final Map    REGION2AMI      =
+        ["us-east-1"     : "ami-67a3a90d",
+         "us-west-1"     : "ami-b7d5a8d7",
+         "us-west-2"     : "ami-c7a451a7",
+         "eu-west-1"     : "ami-9c9819ef",
+         "eu-central-1"  : "ami-9aeb0af5",
+         "ap-northeast-1": "ami-7e4a5b10",
+         "ap-southeast-1": "ami-be63a9dd",
+         "ap-southeast-2": "ami-b8cbe8db"]
 
     String name
-    String image = DEFAULT_AMI
+    String image = REGION2AMI[DEFAULT_REGION]
     String instanceType = DEFAULT_TYPE
     String subnet
     String userData
@@ -80,12 +87,14 @@ class Ec2InstanceSettings {
         def binding = [name:name, proxy:proxy()]
         def engine = new SimpleTemplateEngine()
         def template = engine.createTemplate(Ec2InstanceSettings.class.getResource("/userdata.sh").text)
-            .make(binding)
+                .make(binding)
         BaseEncoding.base64().encode(template.toString().getBytes(Charset.defaultCharset()))
     }
 
     static String proxy() {
         return System.getenv("HTTP_PROXY") ? System.getenv("HTTP_PROXY")
-            : System.getProperty("http.proxy")
+                : System.getProperty("http.proxy")
     }
 }
+
+import java.nio.charset.Charset

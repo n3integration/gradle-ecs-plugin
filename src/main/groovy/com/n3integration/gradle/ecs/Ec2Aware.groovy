@@ -21,6 +21,8 @@ import com.amazonaws.services.ec2.AmazonEC2Client
 import com.amazonaws.services.ec2.model.CreateKeyPairRequest
 import com.amazonaws.services.ec2.model.Instance
 import com.amazonaws.services.ec2.model.RunInstancesRequest
+import com.amazonaws.services.ec2.model.TerminateInstancesRequest
+import com.amazonaws.services.ec2.model.TerminateInstancesResult
 import com.n3integration.gradle.ecs.models.Cluster
 
 import java.nio.file.Files
@@ -77,6 +79,11 @@ trait Ec2Aware extends AWSAware {
             .withSecurityGroupIds(instanceSettings.securityGroups))
 
         result.getReservation().instances
+    }
+
+    def TerminateInstancesResult deleteEc2Instances(AmazonEC2Client client, List<String> instanceIds) {
+        client.terminateInstances(new TerminateInstancesRequest()
+                .withInstanceIds(instanceIds))
     }
 
     def File privateKeyFile(Cluster cluster) {

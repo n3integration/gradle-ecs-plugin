@@ -16,11 +16,14 @@
  */
 package com.n3integration.gradle.ecs.tasks
 
+import com.amazonaws.services.ecs.AmazonECSClient
 import com.amazonaws.services.ecs.model.ClusterNotFoundException
-import com.amazonaws.services.ecs.model.DeleteClusterRequest
+import com.n3integration.gradle.ecs.AutoScaleAware
+import com.n3integration.gradle.ecs.Ec2Aware
+import com.n3integration.gradle.ecs.models.Cluster
 import org.gradle.api.tasks.TaskAction
 
-class DeleteCluster extends DefaultClusterTask {
+class DeleteCluster extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
 
     DeleteCluster() {
         this.description = "Deletes an EC2 Container Service cluster"
@@ -28,11 +31,40 @@ class DeleteCluster extends DefaultClusterTask {
 
     @TaskAction
     def deleteClusterAction() {
-        super.execute { ecsClient, cluster ->
+        def asClient = createAutoScalingClient()
+        super.execute { AmazonECSClient ecsClient, Cluster cluster ->
             try {
+                def result
+                def instanceSettings = cluster.instanceSettings
+                if(instanceSettings && instanceSettings.autoScaling) {
+                    logger.quiet("Scaling down auto scaling group...")
+                    instanceSettings.autoScaling.min = 0
+                    scaleAutoScalingGroup(asClient, instanceSettings)
+                    waitForInstancesToTerminate(asClient, instanceSettings, 10000)
+                    logger.quiet("Deleting auto scaling group...")
+                    deleteAutoScalingGroup(asClient, instanceSettings)
+                    logger.quiet("Deleting launch configuration...")
+                    deleteLaunchConfiguration(asClient, instanceSettings)
+                }
+                else if(instanceSettings && instanceSettings.scale) {
+                    def instances = listContainerInstances(ecsClient, cluster)
+                    if(!instances.isEmpty()) {
+                        def ec2Client = createEc2Client(cluster)
+                        logger.quiet("Terminating instances...")
+                        result = deleteEc2Instances(ec2Client, instances.collect { it.ec2InstanceId })
+                        result.terminatingInstances.each { instance ->
+                            logger.quiet("\tinstance: ${instance.instanceId}")
+                            logger.quiet("\t   state: ${instance.currentState}")
+                        }
+                    }
+                }
+                logger.quiet("Scaling down ${clusterName} services...")
+                scaleServices(ecsClient, cluster)
+                logger.quiet("Deleting ${clusterName} services...")
+                // TODO: deregister task defintions
+                deleteServices(ecsClient, cluster)
                 logger.quiet("Deleting ${clusterName} cluster...")
-                def result = ecsClient.deleteCluster(new DeleteClusterRequest()
-                    .withCluster(clusterName))
+                result = deleteCluster(ecsClient, cluster)
                 logger.debug("${clusterName}:${result.cluster?.status}")
             }
             catch(ClusterNotFoundException ex) {

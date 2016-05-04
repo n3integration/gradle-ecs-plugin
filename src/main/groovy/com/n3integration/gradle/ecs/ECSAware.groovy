@@ -18,8 +18,12 @@ package com.n3integration.gradle.ecs
 
 import com.amazonaws.services.ecs.AmazonECSClient
 import com.amazonaws.services.ecs.model.*
+import com.google.common.collect.Lists
 import com.n3integration.gradle.ecs.models.Cluster
 
+/**
+ *
+ */
 trait ECSAware extends AWSAware {
 
     def AmazonECSClient createEcsClient(cluster) {
@@ -32,9 +36,40 @@ trait ECSAware extends AWSAware {
             .withClusterName(cluster.name))
     }
 
+    def void scaleServices(AmazonECSClient client, Cluster cluster) {
+        client.listServices(new ListServicesRequest()
+                .withCluster(cluster.name)).serviceArns.each { service ->
+
+            client.updateService(new UpdateServiceRequest()
+                    .withCluster(cluster.name)
+                    .withService(service)
+                    .withDesiredCount(cluster.instanceSettings.autoScaling.min))
+        }
+    }
+
+    def void deleteServices(AmazonECSClient client, Cluster cluster) {
+        def services = client.listServices(new ListServicesRequest()
+            .withCluster(cluster.name))
+
+        services.serviceArns.each { service ->
+            client.deleteService(new DeleteServiceRequest()
+                .withCluster(cluster.name)
+                .withService(service))
+        }
+    }
+
+    def DeleteClusterResult deleteCluster(AmazonECSClient client, Cluster cluster) {
+        client.deleteCluster(new DeleteClusterRequest()
+            .withCluster(cluster.name))
+    }
+
     def List<ContainerInstance> listContainerInstances(AmazonECSClient client, Cluster cluster) {
         def result = client.listContainerInstances(new ListContainerInstancesRequest()
             .withCluster(cluster.name))
+
+        if(result.containerInstanceArns.isEmpty()) {
+            return Lists.newArrayList()
+        }
 
         def instanceResult = client.describeContainerInstances(new DescribeContainerInstancesRequest()
             .withCluster(cluster.name)
@@ -43,5 +78,14 @@ trait ECSAware extends AWSAware {
         instanceResult.containerInstances.findAll { instance ->
             instance.getStatus().equals("ACTIVE")
         }
+    }
+
+    def List<ContainerInstance> waitForContainerInstances(AmazonECSClient client, Cluster cluster, long timeout) {
+        def instances = listContainerInstances(client, cluster)
+        while(instances.isEmpty()) {
+            sleep(timeout)
+            instances = listContainerInstances(client, cluster)
+        }
+        instances
     }
 }

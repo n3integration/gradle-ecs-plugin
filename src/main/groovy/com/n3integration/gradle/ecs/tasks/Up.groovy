@@ -81,7 +81,7 @@ class Up extends DefaultClusterTask {
 
     def startTasks(AmazonECSClient ecsClient, Cluster cluster, Container container, TaskDefinition taskDef) {
         logger.quiet("Checking container instances...")
-        def containerInstances = listContainerInstances(ecsClient, cluster)
+        def containerInstances = waitForContainerInstances(ecsClient, cluster, 10000)
         if(containerInstances.size() < container.instances) {
             throw new GradleException("insufficient number of container instances registered with ${cluster.name} cluster")
         }
