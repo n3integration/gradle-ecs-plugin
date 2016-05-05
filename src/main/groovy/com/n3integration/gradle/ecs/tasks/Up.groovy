@@ -71,6 +71,7 @@ class Up extends DefaultClusterTask {
 
         def result = ecsClient.createService(new CreateServiceRequest()
             .withCluster(clusterName)
+            .withClientToken(UUID.randomUUID().toString())
             .withServiceName(container.name)
             .withTaskDefinition(taskDef.getTaskDefinitionArn())
             .withDesiredCount(container.instances))
