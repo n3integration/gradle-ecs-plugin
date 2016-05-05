@@ -58,11 +58,6 @@ class DeleteCluster extends DefaultClusterTask implements AutoScaleAware, Ec2Awa
                         }
                     }
                 }
-                logger.quiet("Scaling down ${clusterName} services...")
-                scaleServices(ecsClient, cluster)
-                logger.quiet("Deleting ${clusterName} services...")
-                // TODO: deregister task defintions
-                deleteServices(ecsClient, cluster)
                 logger.quiet("Deleting ${clusterName} cluster...")
                 result = deleteCluster(ecsClient, cluster)
                 logger.debug("${clusterName}:${result.cluster?.status}")

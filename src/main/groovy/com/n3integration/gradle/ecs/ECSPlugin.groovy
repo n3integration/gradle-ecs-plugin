@@ -20,6 +20,7 @@ import com.n3integration.gradle.ecs.models.Cluster
 import com.n3integration.gradle.ecs.models.Container
 import com.n3integration.gradle.ecs.tasks.CreateCluster
 import com.n3integration.gradle.ecs.tasks.DeleteCluster
+import com.n3integration.gradle.ecs.tasks.Down
 import com.n3integration.gradle.ecs.tasks.Up
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -40,6 +41,7 @@ class ECSPlugin implements Plugin<Project> {
 
         project.tasks.create("createCluster", CreateCluster)
         project.tasks.create("up", Up)
+        project.tasks.create("down", Down)
         project.tasks.create("deleteCluster", DeleteCluster)
 
         project.extensions.create(ECS_EXTENSION, ECSExtension, clusters)
