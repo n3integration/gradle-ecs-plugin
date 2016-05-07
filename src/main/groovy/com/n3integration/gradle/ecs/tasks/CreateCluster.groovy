@@ -49,14 +49,6 @@ class CreateCluster extends DefaultClusterTask implements Ec2Aware, AutoScaleAwa
                 result = createAutoScalingGroup(asClient, instanceSettings)
                 logger.quiet("\tcreated group: ${result}")
             }
-            else if(instanceSettings && instanceSettings.scale) {
-                logger.quiet("Creating instances...")
-                result = createEc2Instances(ec2Client, cluster)
-                result.each { instance ->
-                    logger.quiet("\tinstance: ${instance.instanceId}")
-                    logger.quiet("\t   state: ${instance.state}")
-                }
-            }
         }
     }
 }

@@ -19,16 +19,24 @@ package com.n3integration.gradle.ecs.models
 import com.amazonaws.services.ecs.model.ContainerDefinition
 import com.amazonaws.services.ecs.model.KeyValuePair
 import com.amazonaws.services.ecs.model.PortMapping
+import com.google.common.base.Strings
 import org.gradle.api.GradleException
 
+/**
+ * Docker container definition. Uses docker-compose style port mappings.
+ *
+ * @author n3integration
+ */
 class Container {
 
-    public static final int MINIMUM_MIB_SIZE = 4
+    public static final int MINIMUM_MIB_SIZE = 64
     public static final int DEFAULT_MIB_SIZE = 128
 
     final String name
 
     String image
+    String group
+    String hostname
     int instances = 1
     Integer cpu = 10
     int memory = DEFAULT_MIB_SIZE
@@ -48,6 +56,15 @@ class Container {
         name
     }
 
+    def String familySuffix() {
+        if(Strings.isNullOrEmpty(group)) {
+            name
+        }
+        else {
+            group
+        }
+    }
+
     def toDefinition() {
         def definition = new ContainerDefinition().withName(name)
         if(image) {
@@ -55,6 +72,9 @@ class Container {
         }
         else {
             throw new GradleException("${name} container is missing image")
+        }
+        if(!Strings.isNullOrEmpty(hostname)) {
+            definition.hostname = hostname
         }
         if(cpu) {
             definition.cpu = cpu

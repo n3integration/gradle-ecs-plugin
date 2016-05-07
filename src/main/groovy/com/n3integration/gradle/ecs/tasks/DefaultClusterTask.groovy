@@ -17,6 +17,7 @@
 package com.n3integration.gradle.ecs.tasks
 
 import com.n3integration.gradle.ecs.ECSAware
+
 /**
  * Base implementation for ECS tasks
  */

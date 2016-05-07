@@ -16,6 +16,11 @@
  */
 package com.n3integration.gradle.ecs.models
 
+/**
+ * Auto scaling health check configuration
+ *
+ * @author n3integration
+ */
 class HealthCheck {
     String type = "EC2"
     Integer gracePeriod = 300

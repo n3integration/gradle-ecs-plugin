@@ -22,17 +22,45 @@ import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
 import com.amazonaws.regions.Regions
 import com.n3integration.gradle.ecs.models.Cluster
 
+/**
+ * Defines common AWS criteria
+ *
+ * @author n3integration
+ */
 trait AWSAware {
 
+    /**
+     * Constructs a {@link Regions} instance from the {@code region} defined in the
+     * {@code cluster}.
+     *
+     * @param cluster
+     *          the {@link Cluster} definition
+     * @return the associated {@link Regions} instance
+     */
     def Regions getRegion(Cluster cluster) {
-        Regions.fromName(cluster?.region ?: project.ecs.region)
+        if(cluster) {
+            Regions.fromName(cluster?.region ?: project.ecs.region)
+        }
+        else {
+            Regions.US_EAST_1
+        }
     }
 
+    /**
+     * Fetches the default {@link AWSCredentials}
+     *
+     * @return initialized {@link AWSCredentials} instance
+     */
     def AWSCredentials defaultCredentials() {
         def credentialsProvider = new DefaultAWSCredentialsProviderChain()
         credentialsProvider.getCredentials()
     }
 
+    /**
+     * Attempts to retrieve the {@link AWSCredentials} from {@code this}
+     *
+     * @return {@code this.getCredentials()} or {@link #defaultCredentials()}
+     */
     def AWSCredentials credentials() {
         if(this.class.metaClass.respondsTo(this, "getCredentials")) {
             return getCredentials()

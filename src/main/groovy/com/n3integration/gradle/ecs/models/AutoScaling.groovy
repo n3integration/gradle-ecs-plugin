@@ -18,17 +18,22 @@ package com.n3integration.gradle.ecs.models
 
 import com.google.common.collect.Lists
 
+/**
+ * Auto scaling group definition
+ *
+ * @author n3integration
+ */
 class AutoScaling {
 
     static final int DEFAULT_MIN        = 1
     static final int DEFAULT_COOLDOWN   = 300       // five minutes
 
     Integer min = DEFAULT_MIN
-    Integer max = min
+    Integer max = DEFAULT_MIN * 2
     Integer cooldownPeriod = DEFAULT_COOLDOWN
     HealthCheck healthCheck
-    List<String> availabilityZones
     List<String> subnetIds
+    List<String> availabilityZones
 
     AutoScaling() {
         this.healthCheck = new HealthCheck()

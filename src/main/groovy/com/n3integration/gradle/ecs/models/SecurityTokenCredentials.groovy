@@ -19,6 +19,11 @@ package com.n3integration.gradle.ecs.models
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.BasicSessionCredentials
 
+/**
+ * Allows users to define role-based credentials within their build.gradle files
+ *
+ * @author n3integration
+ */
 class SecurityTokenCredentials extends Credentials {
 
     String roleArn

@@ -29,13 +29,31 @@ import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 
+/**
+ *
+ * @author n3integration
+ */
 trait Ec2Aware extends AWSAware {
 
+    /**
+     *
+     * @param cluster
+     *          the {@link Cluster} definition
+     * @return
+     */
     def AmazonEC2Client createEc2Client(Cluster cluster) {
         new AmazonEC2Client(credentials())
             .withRegion(getRegion(cluster))
     }
 
+    /**
+     *
+     * @param client
+     *          the {@link AmazonEC2Client} instance
+     * @param cluster
+     *          the {@link Cluster} definition
+     * @return
+     */
     def String createKeyPairIfNecessary(AmazonEC2Client client, Cluster cluster) {
         def privateKey = privateKeyFile(cluster)
 
@@ -64,9 +82,17 @@ trait Ec2Aware extends AWSAware {
         return privateKey.absolutePath
     }
 
+    /**
+     *
+     * @param client
+     *          the {@link AmazonEC2Client} instance
+     * @param cluster
+     *          the {@link Cluster} definition
+     * @return
+     */
     def List<Instance> createEc2Instances(AmazonEC2Client client, Cluster cluster) {
         def instanceSettings = cluster.instanceSettings
-        def scale = instanceSettings.scale
+        def scale = instanceSettings.autoScaling
         def result = client.runInstances(new RunInstancesRequest()
             .withImageId(instanceSettings.image)
             .withInstanceType(instanceSettings.instanceType)
@@ -81,12 +107,19 @@ trait Ec2Aware extends AWSAware {
         result.getReservation().instances
     }
 
+    /**
+     *
+     * @param client
+     *          the {@link AmazonEC2Client} instance
+     * @param instanceIds
+     * @return
+     */
     def TerminateInstancesResult deleteEc2Instances(AmazonEC2Client client, List<String> instanceIds) {
         client.terminateInstances(new TerminateInstancesRequest()
-                .withInstanceIds(instanceIds))
+            .withInstanceIds(instanceIds))
     }
 
-    def File privateKeyFile(Cluster cluster) {
+    private File privateKeyFile(Cluster cluster) {
         new File(System.getProperty("user.home"), ".ecs/${cluster.name}.pem")
     }
 

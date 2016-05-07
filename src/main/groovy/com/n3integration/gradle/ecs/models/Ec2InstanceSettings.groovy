@@ -22,11 +22,19 @@ import com.google.common.collect.Lists
 import com.google.common.io.BaseEncoding
 import groovy.text.SimpleTemplateEngine
 
+import java.nio.charset.Charset
+
+/**
+ * Model definition for ec2 instance configuration. Currently supports
+ * auto scaling groups.
+ *
+ * @author n3integration
+ */
 class Ec2InstanceSettings {
 
-    static final String DEFAULT_TYPE    = "t2.micro"    // free tier
-    static final String DEFAULT_REGION  = "us-east-1"
-    static final Map    REGION2AMI      =
+    static final String             DEFAULT_TYPE    = "t2.micro"    // free tier
+    static final String             DEFAULT_REGION  = "us-east-1"
+    static final Map<String,String> REGION2AMI      =
         ["us-east-1"     : "ami-67a3a90d",
          "us-west-1"     : "ami-b7d5a8d7",
          "us-west-2"     : "ami-c7a451a7",
@@ -37,12 +45,11 @@ class Ec2InstanceSettings {
          "ap-southeast-2": "ami-b8cbe8db"]
 
     String name
+    String subnet
     String image = REGION2AMI[DEFAULT_REGION]
     String instanceType = DEFAULT_TYPE
-    String subnet
     String userData
     String iamInstanceProfileArn
-    Scaling scale
     AutoScaling autoScaling
     List<String> securityGroups
     List<Tag> tags
@@ -69,13 +76,6 @@ class Ec2InstanceSettings {
         this.tags.add(tag)
     }
 
-    def scale(@DelegatesTo(Scaling) Closure closure) {
-        this.scale = new Scaling()
-        def clone = closure.rehydrate(scale, this, this)
-        clone.resolveStrategy = Closure.DELEGATE_ONLY
-        clone()
-    }
-
     def autoScaling(@DelegatesTo(AutoScaling) Closure closure) {
         this.autoScaling = new AutoScaling()
         def clone = closure.rehydrate(autoScaling, this, this)
@@ -86,8 +86,8 @@ class Ec2InstanceSettings {
     static String loadUserDataTemplate(String name) {
         def binding = [name:name, proxy:proxy()]
         def engine = new SimpleTemplateEngine()
-        def template = engine.createTemplate(Ec2InstanceSettings.class.getResource("/userdata.sh").text)
-                .make(binding)
+        def template = engine.createTemplate(loadDefaultUserData())
+            .make(binding)
         BaseEncoding.base64().encode(template.toString().getBytes(Charset.defaultCharset()))
     }
 
@@ -95,6 +95,8 @@ class Ec2InstanceSettings {
         return System.getenv("HTTP_PROXY") ? System.getenv("HTTP_PROXY")
                 : System.getProperty("http.proxy")
     }
-}
 
-import java.nio.charset.Charset
+    private static String loadDefaultUserData() {
+        Ec2InstanceSettings.class.getResource("/userdata.sh").text
+    }
+}

@@ -17,20 +17,20 @@
 package com.n3integration.gradle.ecs.tasks
 
 import com.amazonaws.services.ecs.AmazonECSClient
-import com.amazonaws.services.ecs.model.CreateServiceRequest
-import com.amazonaws.services.ecs.model.RegisterTaskDefinitionRequest
-import com.amazonaws.services.ecs.model.StartTaskRequest
-import com.amazonaws.services.ecs.model.TaskDefinition
+import com.n3integration.gradle.ecs.ECSAware
 import com.n3integration.gradle.ecs.models.Cluster
 import com.n3integration.gradle.ecs.models.Container
-import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
 import java.nio.file.Files
 
-class Up extends DefaultClusterTask {
-
-    def File taskDefDir = new File(project.buildDir, "taskDefs")
+/**
+ * Responsible for registering task definitions, creating services, and starting
+ * the registered tasks.
+ *
+ * @author n3integration
+ */
+class Up extends DefaultClusterTask implements ECSAware {
 
     Up() {
         this.description = "Creates the ECS task definition, service, and starts the containers, if necessary"
@@ -40,69 +40,42 @@ class Up extends DefaultClusterTask {
     def upAction() {
         Files.createDirectories(taskDefDir.toPath())
         super.execute { AmazonECSClient ecsClient, Cluster cluster ->
-            cluster.containers.all { container ->
-                def taskDef = createTaskDefinition(ecsClient, container)
-                createService(ecsClient, container, taskDef)
-                startTasks(ecsClient, cluster, container, taskDef)
+            cluster.containers.groupBy { container ->
+                container.familySuffix()
+            }.each { familySuffix, containers ->
+                logger.quiet("Registering task definition ${familySuffix}...")
+                def taskDef = createTaskDefinition(ecsClient, cluster, familySuffix, containers)
+                logger.quiet("\t  family: ${taskDef.family}")
+                logger.quiet("\trevision: ${taskDef.revision}")
+                logger.quiet("\t  status: ${taskDef.status}")
+
+                logger.quiet("Creating ${familySuffix} service...")
+                def count =  getInstanceCount(containers)
+                def service = createService(ecsClient, cluster, familySuffix, count, taskDef)
+                logger.quiet("\t   arn: ${service.serviceArn}")
+                logger.quiet("\tstatus: ${service.status}")
+
+                logger.quiet("Starting ${cluster.name} tasks...")
+                def tasks = startTasks(ecsClient, cluster, count, taskDef)
+                tasks.each { task ->
+                    logger.quiet("\t   created: ${task.createdAt}")
+                    logger.quiet("\t    status: ${task.lastStatus}")
+                    logger.quiet("\tcontainers: ${task.containers}")
+                }
             }
         }
     }
 
-    def createTaskDefinition(AmazonECSClient ecsClient, Container container) {
-        logger.quiet("Registering task definition ${container.name}...")
-
-        def family = "${clusterName}-${container.name}"
-        def containerDefinition = container.toDefinition()
-
-        def taskDefFile = new File(taskDefDir, "${family}.def")
-
-        taskDefFile.text = containerDefinition.toString()
-
-        def result = ecsClient.registerTaskDefinition(new RegisterTaskDefinitionRequest()
-            .withFamily(family)
-            .withContainerDefinitions(containerDefinition))
-
-        logger.quiet("${result.taskDefinition.family}:${result.taskDefinition.revision} - ${result.taskDefinition.status}")
-        result.taskDefinition
-    }
-
-    def createService(AmazonECSClient ecsClient, Container container, TaskDefinition taskDef) {
-        logger.quiet("Creating ${container.name} service...")
-
-        def result = ecsClient.createService(new CreateServiceRequest()
-            .withCluster(clusterName)
-            .withClientToken(UUID.randomUUID().toString())
-            .withServiceName(container.name)
-            .withTaskDefinition(taskDef.getTaskDefinitionArn())
-            .withDesiredCount(container.instances))
-
-        logger.quiet("${result.service.serviceArn}:${result.service.status}")
-        result.service
-    }
-
-    def startTasks(AmazonECSClient ecsClient, Cluster cluster, Container container, TaskDefinition taskDef) {
-        logger.quiet("Checking container instances...")
-        def containerInstances = waitForContainerInstances(ecsClient, cluster, 10000)
-        if(containerInstances.size() < container.instances) {
-            throw new GradleException("insufficient number of container instances registered with ${cluster.name} cluster")
-        }
-
-        // TODO: use smart algorithm to determine availability
-        def containerInstanceArns = containerInstances.collect { instance ->
-            instance.containerInstanceArn
-        }
-
-        logger.quiet("Starting ${clusterName} tasks...")
-        def result = ecsClient.startTask(new StartTaskRequest()
-            .withCluster(clusterName)
-            .withContainerInstances(containerInstanceArns)
-            .withTaskDefinition(taskDef.getTaskDefinitionArn()))
-
-        if(result.failures) {
-            throw new GradleException("error starting the task definition: ${result.failures}")
-        }
-        else {
-            logger.quiet("${clusterName}:${result.tasks}")
+    def int getInstanceCount(List<Container> containers) {
+        containers.collect { container ->
+            if(container.instances > 0) {
+                container.instances
+            }
+            else {
+                1
+            }
+        }.inject(0) { sum, i ->
+            sum + i
         }
     }
 }

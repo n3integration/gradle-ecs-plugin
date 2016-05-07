@@ -22,10 +22,15 @@ import com.n3integration.gradle.ecs.Ec2Aware
 import com.n3integration.gradle.ecs.models.Cluster
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Responsible for terminating any running services and unregistering task definitions
+ *
+ * @author n3integration
+ */
 class Down extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
 
     Down() {
-        this.description = "Shuts down an ECS task and service"
+        this.description = "Shuts down running ECS tasks and services"
     }
 
     @TaskAction
@@ -34,11 +39,17 @@ class Down extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
             def instanceSettings = cluster.instanceSettings
             if(instanceSettings && instanceSettings.autoScaling) {
                 instanceSettings.autoScaling.min = 0
-                logger.quiet("Scaling down ${clusterName} services...")
+
+                logger.quiet("Scaling back ${clusterName} services...")
                 scaleServices(ecsClient, cluster)
+
                 logger.quiet("Deleting ${clusterName} services...")
-                // TODO: deregister task definitions
                 deleteServices(ecsClient, cluster)
+
+                logger.quiet("Unregistering ${clusterName} tasks...")
+                cluster.families().each { family ->
+                    unregisterTasks(ecsClient, family)
+                }
             }
         }
     }

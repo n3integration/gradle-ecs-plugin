@@ -20,6 +20,9 @@ import com.amazonaws.services.autoscaling.AmazonAutoScalingClient
 import com.amazonaws.services.autoscaling.model.*
 import com.n3integration.gradle.ecs.models.Ec2InstanceSettings
 
+/**
+ * Trait to manage auto scaling groups
+ */
 trait AutoScaleAware extends AWSAware {
 
     static final String ASG_SUFFIX = "asg-cfg"

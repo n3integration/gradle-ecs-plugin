@@ -18,12 +18,24 @@ package com.n3integration.gradle.ecs.models
 
 import org.gradle.api.NamedDomainObjectContainer
 
+/**
+ * ECS cluster model definition
+ *
+ * @author n3integration
+ */
 class Cluster {
 
-    final String name
-    String region
+    static final String DEFAULT_NAME    = "default"
+    static final String DEFAULT_REGION  = "us-east-1"
+
+    String name
+    String region = DEFAULT_REGION
     Ec2InstanceSettings instanceSettings
     NamedDomainObjectContainer<Container> containers
+
+    Cluster() {
+        this(DEFAULT_NAME)
+    }
 
     Cluster(String name) {
         this.name = name
@@ -45,5 +57,11 @@ class Cluster {
         def clone = closure.rehydrate(instanceSettings, this, this)
         clone.resolveStrategy = Closure.DELEGATE_ONLY
         clone()
+    }
+
+    def List<String> families() {
+        containers.collect { container ->
+            "${name}-${container.familySuffix()}"
+        }
     }
 }

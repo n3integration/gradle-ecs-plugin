@@ -26,6 +26,11 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 
+/**
+ * Gradle plugin to configure an ec2 container service cluster
+ *
+ * @author n3integration
+ */
 class ECSPlugin implements Plugin<Project> {
 
     public static final String ECS_EXTENSION = "ecs"

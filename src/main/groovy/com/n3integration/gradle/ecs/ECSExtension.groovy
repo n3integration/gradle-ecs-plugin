@@ -25,6 +25,8 @@ import org.gradle.api.NamedDomainObjectContainer
 /**
  * Gradle {@code aws} extension to simplify the configuration of ECS
  * orchestration
+ *
+ * @author n3integration
  */
 class ECSExtension {
 

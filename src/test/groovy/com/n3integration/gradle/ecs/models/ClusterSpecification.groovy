@@ -22,21 +22,30 @@ import spock.lang.Specification
 class ClusterSpecification extends Specification {
 
     String clusterName = "dev"
+    String containerName = "dockercloud-hello-world"
 
-    def "can create cluster"() {
+    def "can define a cluster"() {
         when:
         def project = ProjectBuilder.builder().build()
         def containers = project.container(Container)
         def cluster = new Cluster(clusterName, containers)
         cluster.instanceSettings {
-            securityGroups = ["sg-ee928e96"]
+            securityGroups = ["sg-1"]
             autoScaling {
                 min = 1
-                max = 1
+                max = 2
+            }
+            tag {
+                key = "owner"
+                value = "n3integration"
+            }
+            tag {
+                key = "project"
+                value = "gradle-ecs-plugin"
             }
         }
         cluster.containers {
-            "dockercloud-hello-world" {
+            "${containerName}" {
                 instances = 1
                 image = "dockercloud/hello-world"
                 ports = ["80"]
@@ -45,9 +54,14 @@ class ClusterSpecification extends Specification {
 
         then:
         cluster.name == clusterName
-        cluster.instanceSettings.autoScaling?.min == cluster.instanceSettings.autoScaling?.max
+
+        def instanceSettings = cluster.instanceSettings
+        instanceSettings.tags.size() == 2
+        instanceSettings.autoScaling?.min < instanceSettings.autoScaling?.max
+
         cluster.containers.size() == 1
         cluster.containers.each { container ->
+            container.name == containerName
             container.instances == 1
             container.ports = ["80"]
         }
