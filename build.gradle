@@ -6,6 +6,9 @@ buildscript {
         classpath "io.spring.gradle:dependency-management-plugin:0.5.4.RELEASE"
     }
 }
+plugins {
+    id "com.jfrog.bintray" version "1.6"
+}
 
 apply plugin: "groovy"
 apply plugin: "idea"
@@ -13,6 +16,7 @@ apply plugin: "maven-publish"
 apply plugin: "io.spring.dependency-management"
 
 // apply from: "gradle/funcTest.gradle"
+apply from: "gradle/publish.gradle"
 
 repositories {
     jcenter()

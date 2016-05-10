@@ -20,6 +20,11 @@ import com.n3integration.gradle.ecs.AutoScaleAware
 import com.n3integration.gradle.ecs.Ec2Aware
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Creates an ECS cluster
+ *
+ * @author n3integration
+ */
 class CreateCluster extends DefaultClusterTask implements Ec2Aware, AutoScaleAware {
 
     CreateCluster() {

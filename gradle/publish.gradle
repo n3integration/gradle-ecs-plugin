@@ -1,0 +1,29 @@
+publishing {
+    publications {
+        PluginPublication(MavenPublication) {
+            from components.java
+            groupId 'com.n3integration'
+            artifactId 'gradle-ecs-plugin'
+            version project.version
+        }
+    }
+}
+
+bintray {
+    user = System.getenv("BINTRAY_USER")
+    key  = System.getenv("BINTRAY_KEY")
+    publications = ["PluginPublication"]
+    pkg {
+        repo = "maven"
+        name = "gradle-ecs-plugin"
+        licenses = ["Apache-2.0"]
+        vcsUrl = "https://github.com/n3integration/gradle-ecs-plugin.git"
+    }
+    version {
+        name = project.version
+        desc = 'Gradle ECS Plugin ' + project.version
+        released  = new Date()
+        vcsTag = project.version
+    }
+}
+
