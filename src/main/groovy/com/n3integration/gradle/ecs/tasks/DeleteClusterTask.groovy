@@ -30,26 +30,26 @@ import org.gradle.api.tasks.TaskAction
  *
  * @author n3integration
  */
-class DeleteCluster extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
+class DeleteClusterTask extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
 
     public static final int RETRY_DELAY = 10000
 
-    DeleteCluster() {
+    DeleteClusterTask() {
         this.description = "Deletes an EC2 Container Service cluster"
     }
 
     @TaskAction
     def deleteClusterAction() {
         def asClient = createAutoScalingClient()
-        super.execute { AmazonECSClient ecsClient, Cluster cluster ->
+        super.execute { AmazonECSClient ecsClient, Cluster _cluster ->
             try {
-                terminateEc2Instances(asClient, cluster)
-                logger.quiet("Deleting ${clusterName} cluster...")
-                def result = deleteCluster(ecsClient, cluster)
-                logger.debug("${clusterName}:${result.cluster?.status}")
+                terminateEc2Instances(asClient, _cluster)
+                logger.quiet("Deleting ${cluster} cluster...")
+                def result = deleteCluster(ecsClient, _cluster)
+                logger.debug("${cluster}:${result.cluster?.status}")
             }
             catch(ClusterNotFoundException ex) {
-                logger.warn("${clusterName} not found")
+                logger.warn("${cluster} not found")
             }
         }
     }

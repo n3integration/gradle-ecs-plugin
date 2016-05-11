@@ -30,33 +30,33 @@ import java.nio.file.Files
  *
  * @author n3integration
  */
-class Up extends DefaultClusterTask implements ECSAware {
+class UpTask extends DefaultClusterTask implements ECSAware {
 
-    Up() {
+    UpTask() {
         this.description = "Creates the ECS task definition, service, and starts the containers, if necessary"
     }
 
     @TaskAction
     def upAction() {
         Files.createDirectories(taskDefDir.toPath())
-        super.execute { AmazonECSClient ecsClient, Cluster cluster ->
-            cluster.containers.groupBy { container ->
+        super.execute { AmazonECSClient ecsClient, Cluster _cluster ->
+            _cluster.containers.groupBy { container ->
                 container.familySuffix()
             }.each { familySuffix, containers ->
                 logger.quiet("Registering task definition ${familySuffix}...")
-                def taskDef = createTaskDefinition(ecsClient, cluster, familySuffix, containers)
+                def taskDef = createTaskDefinition(ecsClient, _cluster, familySuffix, containers)
                 logger.quiet("\t  family: ${taskDef.family}")
                 logger.quiet("\trevision: ${taskDef.revision}")
                 logger.quiet("\t  status: ${taskDef.status}")
 
                 logger.quiet("Creating ${familySuffix} service...")
                 def count =  getInstanceCount(containers)
-                def service = createService(ecsClient, cluster, familySuffix, count, taskDef)
+                def service = createService(ecsClient, _cluster, familySuffix, count, taskDef)
                 logger.quiet("\t   arn: ${service.serviceArn}")
                 logger.quiet("\tstatus: ${service.status}")
 
-                logger.quiet("Starting ${cluster.name} tasks...")
-                def tasks = startTasks(ecsClient, cluster, count, taskDef)
+                logger.quiet("Starting ${_cluster.name} tasks...")
+                def tasks = startTasks(ecsClient, _cluster, count, taskDef)
                 tasks.each { task ->
                     logger.quiet("\t   created: ${task.createdAt}")
                     logger.quiet("\t    status: ${task.lastStatus}")
@@ -68,12 +68,7 @@ class Up extends DefaultClusterTask implements ECSAware {
 
     def int getInstanceCount(List<Container> containers) {
         containers.collect { container ->
-            if(container.instances > 0) {
-                container.instances
-            }
-            else {
-                1
-            }
+            container.instances > 0 ? container.instances : 1
         }.inject(0) { sum, i ->
             sum + i
         }

@@ -18,13 +18,15 @@ package com.n3integration.gradle.ecs
 
 import com.n3integration.gradle.ecs.models.Cluster
 import com.n3integration.gradle.ecs.models.Container
-import com.n3integration.gradle.ecs.tasks.CreateCluster
-import com.n3integration.gradle.ecs.tasks.DeleteCluster
-import com.n3integration.gradle.ecs.tasks.Down
-import com.n3integration.gradle.ecs.tasks.Up
+import com.n3integration.gradle.ecs.tasks.CreateClusterTask
+import com.n3integration.gradle.ecs.tasks.DeleteClusterTask
+import com.n3integration.gradle.ecs.tasks.DownTask
+import com.n3integration.gradle.ecs.tasks.UpTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 
 /**
  * Gradle plugin to configure an ec2 container service cluster
@@ -32,6 +34,8 @@ import org.gradle.api.artifacts.Configuration
  * @author n3integration
  */
 class ECSPlugin implements Plugin<Project> {
+
+    private static Logger logger = Logging.getLogger(ECSPlugin)
 
     public static final String ECS_EXTENSION = "ecs"
     public static final String AWS_SDK_VERSION = "1.10.69"
@@ -44,10 +48,10 @@ class ECSPlugin implements Plugin<Project> {
             containers = project.container(Container)
         }
 
-        project.tasks.create("createCluster", CreateCluster)
-        project.tasks.create("up", Up)
-        project.tasks.create("down", Down)
-        project.tasks.create("deleteCluster", DeleteCluster)
+        addCreateClusterTaskType(project)
+        addUpTaskType(project)
+        addDownTaskType(project)
+        addDeleteClusterTaskType(project)
 
         project.extensions.create(ECS_EXTENSION, ECSExtension, clusters)
         project.configurations.create(AWS_JAVA_CONFIGURATION_NAME)
@@ -66,5 +70,25 @@ class ECSPlugin implements Plugin<Project> {
             dependencies.add(project.dependencies.create("com.amazonaws:aws-java-sdk-sts:${AWS_SDK_VERSION}"))
             dependencies.add(project.dependencies.create('org.slf4j:slf4j-simple:1.7.5'))
         }
+    }
+
+    private void addCreateClusterTaskType(Project project) {
+        logger.info("Adding create cluster task type")
+        project.ext.CreateCluster = CreateClusterTask.class
+    }
+
+    private void addUpTaskType(Project project) {
+        logger.info("Adding up task type")
+        project.ext.Up = UpTask.class
+    }
+
+    private void addDownTaskType(Project project) {
+        logger.info("Adding down task type")
+        project.ext.Down = DownTask.class
+    }
+
+    private void addDeleteClusterTaskType(Project project) {
+        logger.info("Adding delete cluster task type")
+        project.ext.DeleteCluster = DeleteClusterTask.class
     }
 }

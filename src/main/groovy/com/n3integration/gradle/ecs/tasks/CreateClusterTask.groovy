@@ -16,8 +16,10 @@
  */
 package com.n3integration.gradle.ecs.tasks
 
+import com.amazonaws.services.ecs.AmazonECSClient
 import com.n3integration.gradle.ecs.AutoScaleAware
 import com.n3integration.gradle.ecs.Ec2Aware
+import com.n3integration.gradle.ecs.models.Cluster
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -25,31 +27,32 @@ import org.gradle.api.tasks.TaskAction
  *
  * @author n3integration
  */
-class CreateCluster extends DefaultClusterTask implements Ec2Aware, AutoScaleAware {
+class CreateClusterTask extends DefaultClusterTask implements Ec2Aware, AutoScaleAware {
 
-    CreateCluster() {
+    CreateClusterTask() {
         this.description = "Creates a new EC2 Container Service cluster"
     }
 
     @TaskAction
     def createClusterAction() {
         def asClient = createAutoScalingClient()
-        super.execute { ecsClient, cluster ->
-            logger.quiet("Creating ${clusterName} cluster...")
-            def result = createCluster(ecsClient, cluster)
-            logger.quiet("\tcluster: ${clusterName}")
+        super.execute { AmazonECSClient ecsClient, Cluster _cluster ->
+            logger.quiet("Creating ${cluster} cluster...")
+            def result = createCluster(ecsClient, _cluster)
+            logger.quiet("\tcluster: ${cluster}")
             logger.quiet("\t status: ${result.cluster?.status}")
 
-            def ec2Client = createEc2Client(cluster)
-            logger.quiet("Creating key pair...")
-            result = createKeyPairIfNecessary(ec2Client, cluster)
-            logger.quiet("\tkey: ${result}")
-
-            def instanceSettings = cluster.instanceSettings
+            def instanceSettings = _cluster.instanceSettings
             if(instanceSettings && instanceSettings.autoScaling) {
+                def ec2Client = createEc2Client(_cluster)
+                logger.quiet("Creating key pair...")
+                result = createKeyPairIfNecessary(ec2Client, _cluster)
+                logger.quiet("\tkey: ${result}")
+
                 logger.quiet("Creating launch configuration...")
                 result = createLaunchConfiguration(asClient, instanceSettings)
                 logger.quiet("\tcreated config: ${result}")
+
                 logger.quiet("Creating auto scaling group...")
                 result = createAutoScalingGroup(asClient, instanceSettings)
                 logger.quiet("\tcreated group: ${result}")

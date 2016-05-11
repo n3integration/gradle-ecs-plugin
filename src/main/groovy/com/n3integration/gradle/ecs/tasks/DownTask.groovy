@@ -27,27 +27,27 @@ import org.gradle.api.tasks.TaskAction
  *
  * @author n3integration
  */
-class Down extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
+class DownTask extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
 
-    Down() {
+    DownTask() {
         this.description = "Shuts down running ECS tasks and services"
     }
 
     @TaskAction
     def downClusterAction() {
-        super.execute { AmazonECSClient ecsClient, Cluster cluster ->
-            def instanceSettings = cluster.instanceSettings
+        super.execute { AmazonECSClient ecsClient, Cluster _cluster ->
+            def instanceSettings = _cluster.instanceSettings
             if(instanceSettings && instanceSettings.autoScaling) {
                 instanceSettings.autoScaling.min = 0
 
-                logger.quiet("Scaling back ${clusterName} services...")
-                scaleServices(ecsClient, cluster)
+                logger.quiet("Scaling back ${cluster} services...")
+                scaleServices(ecsClient, _cluster)
 
-                logger.quiet("Deleting ${clusterName} services...")
-                deleteServices(ecsClient, cluster)
+                logger.quiet("Deleting ${cluster} services...")
+                deleteServices(ecsClient, _cluster)
 
-                logger.quiet("Unregistering ${clusterName} tasks...")
-                cluster.families().each { family ->
+                logger.quiet("Unregistering ${cluster} tasks...")
+                _cluster.families().each { family ->
                     unregisterTasks(ecsClient, family)
                 }
             }
