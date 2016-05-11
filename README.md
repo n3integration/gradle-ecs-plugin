@@ -6,7 +6,7 @@ Gradle plugin for Elastic Container Service (ECS) provisioning.
 - [Usage](#usage)
 	- [Project Configuration](#project-configuration)
 	- [ECS Cluster Definitions](#ecs-cluster-definitions)
-- [Tasks Types](#tasks-types)
+- [Task Types](#task-types)
 	- [CreateCluster](#createcluster)
 	- [Up](#up)
 	- [Down](#down)
@@ -16,7 +16,7 @@ Gradle plugin for Elastic Container Service (ECS) provisioning.
 The AWS credentials are pulled from either environment variables or from a `~/.aws/credentials` file. Refer to Amazon's [official](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-environment) documentation for more information.
 
 #### Project Configuration
-The following should be placed at the head of our `build.gradle` file to include the plugin dependency into your Gradle project.
+The following should be placed at the head of your `build.gradle` file to include the plugin dependency into your Gradle project.
 
 ```gradle
 buildscript {
@@ -80,7 +80,7 @@ ecs {
 }
 ```
 
-### Tasks Types
+### Task Types
 The following task types are available.
 
 1. CreateCluster
