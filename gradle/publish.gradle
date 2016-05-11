@@ -1,10 +1,8 @@
 publishing {
     publications {
-        PluginPublication(MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
-            groupId 'com.n3integration'
-            artifactId 'gradle-ecs-plugin'
-            version project.version
+            artifact sourceJar
         }
     }
 }
@@ -12,7 +10,7 @@ publishing {
 bintray {
     user = System.getenv("BINTRAY_USER")
     key  = System.getenv("BINTRAY_KEY")
-    publications = ["PluginPublication"]
+    publications = ["mavenJava"]
     pkg {
         repo = "maven"
         name = "gradle-ecs-plugin"
@@ -26,4 +24,3 @@ bintray {
         vcsTag = project.version
     }
 }
-

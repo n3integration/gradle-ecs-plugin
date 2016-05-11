@@ -3,19 +3,15 @@
 
 Gradle plugin for Elastic Container Service (ECS) provisioning.
 
-<!-- TOC depthFrom:1 depthTo:6 withLinks:1 updateOnSave:1 orderedList:0 -->
+- [Usage](#usage)
+	- [Project Configuration](#project-configuration)
+	- [ECS Cluster Definitions](#ecs-cluster-definitions)
+- [Tasks Types](#tasks-types)
+	- [CreateCluster](#createcluster)
+	- [Up](#up)
+	- [Down](#down)
+	- [DeleteCluster](#deletecluster)
 
-- [gradle-ecs-plugin](#gradle-ecs-plugin)
-		- [Usage](#usage)
-			- [Project Configuration](#project-configuration)
-			- [ECS Cluster Definitions](#ecs-cluster-definitions)
-		- [Tasks Types](#tasks-types)
-			- [CreateCluster](#createcluster)
-			- [Up](#up)
-			- [Down](#down)
-			- [DeleteCluster](#deletecluster)
-
-<!-- /TOC -->
 ### Usage
 The AWS credentials are pulled from either environment variables or from a `~/.aws/credentials` file. Refer to Amazon's [official](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-environment) documentation for more information.
 
@@ -95,11 +91,35 @@ The following task types are available.
 #### CreateCluster
 Creates a new Elastic Container Service cluster. If an `autoScaling` group is provided for the cluster, one or more ec2 instances are provisioned using the specified `image` (or the default ECS-optimized AMI for the us-east-1 region) according to the `autoScaling` definition. Additionally, a private key file – `~/.ecs/<cluster name>.pem` – is created for the cluster's ec2 instances. This key is reused when recreating a cluster, even after the cluster has been deleted. It must be manually [removed](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#delete-key-pair) from AWS.
 
+```gradle
+task createCluster(type: CreateCluster) {
+    cluster = "dev"
+}
+```
+
 #### Up
 Registers and starts the containers associated with the task's `cluster`.
+
+```gradle
+task up(type: Up) {
+    cluster = "dev"
+}
+```
 
 #### Down
 Unregisters and terminates the containers associated with the task's `cluster`.
 
+```gradle
+task down(type: Down) {
+    cluster = "dev"
+}
+```
+
 #### DeleteCluster
 Deletes an existing EC2 Container Service cluster. If a `autoScaling` group is defined for the cluster, the associated ec2 instances will be terminated.
+
+```gradle
+task deleteCluster(type: DeleteCluster) {
+    cluster = "dev"
+}
+```
