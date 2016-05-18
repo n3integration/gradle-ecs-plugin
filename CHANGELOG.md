@@ -1,3 +1,6 @@
+# Version 0.6.0
+* Support for scaling containers
+
 # Version 0.5.0
 Initial public release
 * Plugin extension to declare ECS clusters and containers

@@ -67,13 +67,29 @@ trait ECSAware extends AWSAware {
      *          the {@link Cluster} definition
      */
     def void scaleServices(AmazonECSClient client, Cluster cluster) {
-        client.listServices(new ListServicesRequest()
-            .withCluster(cluster.name)).serviceArns.each { service ->
+        def result = client.listServices(new ListServicesRequest()
+            .withCluster(cluster.name))
+        scaleServices(client, cluster.name, result.serviceArns, cluster.instanceSettings.autoScaling.min)
+    }
 
+    /**
+     * Scales the number of running services up or down according to {@code count}
+     *
+     * @param client
+     *          the {@link AmazonECSClient} instance
+     * @param name
+     *          the cluster name
+     * @param services
+     *          the {@link List} or service arns
+     * @param count
+     *          the desired count
+     */
+    def void scaleServices(AmazonECSClient client, String name, List<String> services, int count) {
+        services.each { service ->
             client.updateService(new UpdateServiceRequest()
-                .withCluster(cluster.name)
+                .withCluster(name)
                 .withService(service)
-                .withDesiredCount(cluster.instanceSettings.autoScaling.min))
+                .withDesiredCount(count))
         }
     }
 
@@ -247,7 +263,7 @@ trait ECSAware extends AWSAware {
             throw new GradleException("insufficient number of container instances registered with ${cluster.name} cluster")
         }
 
-        // TODO: use smart algorithm to determine availability
+        // TODO: use smarter algorithm to determine availability
         def containerInstanceArns = containerInstances.collect { instance ->
             instance.containerInstanceArn
         }

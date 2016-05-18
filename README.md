@@ -1,7 +1,7 @@
 # gradle-ecs-plugin
 [ ![Codeship Status for n3integration/gradle-ecs-plugin](https://codeship.com/projects/977c2ec0-f694-0133-1e27-5e1b5517d789/status?branch=master)](https://codeship.com/projects/150599) [ ![Download](https://api.bintray.com/packages/n3integration/maven/gradle-ecs-plugin/images/download.svg) ](https://bintray.com/n3integration/maven/gradle-ecs-plugin/_latestVersion)
 
-Gradle plugin for Elastic Container Service (ECS) provisioning.
+Gradle plugin for Elastic Container Service (ECS) provisioning. This project was heavily inspired by [docker-compose](https://docs.docker.com/compose/).
 
 - [Usage](#usage)
 	- [Project Configuration](#project-configuration)
@@ -10,6 +10,7 @@ Gradle plugin for Elastic Container Service (ECS) provisioning.
 - [Task Types](#task-types)
 	- [CreateCluster](#createcluster)
 	- [Up](#up)
+	- [Scale](#scale)
 	- [Down](#down)
 	- [DeleteCluster](#deletecluster)
 
@@ -25,7 +26,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.n3integration:gradle-ecs-plugin:0.5.0"
+        classpath "com.n3integration:gradle-ecs-plugin:0.6.0"
     }
 }
 
@@ -123,11 +124,12 @@ The following task types are available.
 
 1. CreateCluster
 1. Up
+1. Scale
 1. Down
 1. DeleteCluster
 
 #### CreateCluster
-Creates a new Elastic Container Service cluster. If an `autoScaling` group is provided for the cluster, one or more ec2 instances are provisioned using the specified `image` (or the default ECS-optimized AMI for the us-east-1 region) according to the `autoScaling` definition. Additionally, a private key file – `~/.ecs/<cluster name>.pem` – is created for the cluster's ec2 instances. This key is reused when recreating a cluster, even after the cluster has been deleted. It must be manually [removed](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#delete-key-pair) from AWS.
+Creates a new Elastic Container Service cluster. If an `autoScaling` group is provided for the cluster, one or more ec2 instances are provisioned using the specified `image` (or the default ECS-optimized AMI for the us-east-1 region) according to the `autoScaling` definition. Additionally, a private key file – `~/.ecs/<cluster name>.pem` – is created for the cluster's ec2 instances. This key is reused when recreating a cluster, even after the cluster has been deleted. It must be manually [removed](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#delete-key-pair) from AWS. This task references named clusters defined within the `ecs.clusters` block.
 
 ```gradle
 task createCluster(type: CreateCluster) {
@@ -136,7 +138,7 @@ task createCluster(type: CreateCluster) {
 ```
 
 #### Up
-Registers and starts the containers associated with the task's `cluster`.
+Registers and starts the containers associated with the task's `cluster`. This task references named clusters defined within the `ecs.clusters` block.
 
 ```gradle
 task up(type: Up) {
@@ -144,8 +146,19 @@ task up(type: Up) {
 }
 ```
 
+#### Scale
+Scales the number of running containers with a `cluster`.
+
+```gradle
+task scale2x(type: Scale) {
+    cluster = "dev"
+    container = "dockercloud-hello-world"
+    instances = 2
+}
+```
+
 #### Down
-Unregisters and terminates the containers associated with the task's `cluster`.
+Unregisters and terminates the containers associated with the task's `cluster`. This task references named clusters defined within the `ecs.clusters` block.
 
 ```gradle
 task down(type: Down) {
@@ -154,7 +167,7 @@ task down(type: Down) {
 ```
 
 #### DeleteCluster
-Deletes an existing EC2 Container Service cluster. If a `autoScaling` group is defined for the cluster, the associated ec2 instances will be terminated.
+Deletes an existing EC2 Container Service cluster. If a `autoScaling` group is defined for the cluster, the associated ec2 instances will be terminated. This task references named clusters defined within the `ecs.clusters` block.
 
 ```gradle
 task deleteCluster(type: DeleteCluster) {

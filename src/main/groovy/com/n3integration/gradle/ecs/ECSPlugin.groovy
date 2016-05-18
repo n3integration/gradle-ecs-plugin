@@ -18,10 +18,7 @@ package com.n3integration.gradle.ecs
 
 import com.n3integration.gradle.ecs.models.Cluster
 import com.n3integration.gradle.ecs.models.Container
-import com.n3integration.gradle.ecs.tasks.CreateClusterTask
-import com.n3integration.gradle.ecs.tasks.DeleteClusterTask
-import com.n3integration.gradle.ecs.tasks.DownTask
-import com.n3integration.gradle.ecs.tasks.UpTask
+import com.n3integration.gradle.ecs.tasks.*
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -50,6 +47,7 @@ class ECSPlugin implements Plugin<Project> {
 
         addCreateClusterTaskType(project)
         addUpTaskType(project)
+        addScaleTaskType(project)
         addDownTaskType(project)
         addDeleteClusterTaskType(project)
 
@@ -80,6 +78,11 @@ class ECSPlugin implements Plugin<Project> {
     private void addUpTaskType(Project project) {
         logger.info("Adding up task type")
         project.ext.Up = UpTask.class
+    }
+
+    private void addScaleTaskType(Project project) {
+        logger.info("Adding scale task type")
+        project.ext.Scale = ScaleTask.class
     }
 
     private void addDownTaskType(Project project) {
