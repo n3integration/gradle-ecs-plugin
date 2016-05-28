@@ -259,11 +259,11 @@ trait ECSAware extends AWSAware {
      */
     def List<Task> startTasks(AmazonECSClient client, Cluster cluster, int count, TaskDefinition taskDef) {
         def containerInstances = waitForContainerInstances(client, cluster, 10000)
-        if(containerInstances.size() < count) {
-            throw new GradleException("insufficient number of container instances registered with ${cluster.name} cluster")
+        if(containerInstances.isEmpty()) {
+            throw new GradleException("no ec2 instances are registered with ${cluster.name} cluster")
         }
 
-        // TODO: use smarter algorithm to determine availability
+        // TODO: use smart algorithm to determine availability
         def containerInstanceArns = containerInstances.collect { instance ->
             instance.containerInstanceArn
         }
