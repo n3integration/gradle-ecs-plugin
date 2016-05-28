@@ -1,3 +1,7 @@
+# Version 0.7.0
+* Support for the Security Token Service
+* 
+
 # Version 0.6.0
 * Support for scaling containers
 

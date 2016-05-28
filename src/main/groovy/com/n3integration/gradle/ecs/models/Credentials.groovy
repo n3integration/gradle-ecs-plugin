@@ -18,6 +18,8 @@ package com.n3integration.gradle.ecs.models
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.BasicAWSCredentials
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain
+import com.google.common.base.Strings
 
 /**
  * Allows developers to provide AWS credentials within their build.gradle file
@@ -25,10 +27,21 @@ import com.amazonaws.auth.BasicAWSCredentials
  * @author n3integration
  */
 class Credentials {
+
     String accessKeyId
     String secretKey
 
+    /**
+     *
+     * @return the {@link AWSCredentials}
+     */
     def AWSCredentials toCredentials() {
-        new BasicAWSCredentials(this.accessKeyId, this.secretKey)
+        if(Strings.isNullOrEmpty(accessKeyId) || Strings.isNullOrEmpty(secretKey)) {
+            def credentialsProvider = new DefaultAWSCredentialsProviderChain()
+            credentialsProvider.getCredentials()
+        }
+        else {
+            new BasicAWSCredentials(this.accessKeyId, this.secretKey)
+        }
     }
 }

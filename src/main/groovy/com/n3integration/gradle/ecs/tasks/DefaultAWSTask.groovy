@@ -19,20 +19,37 @@ package com.n3integration.gradle.ecs.tasks
 import com.amazonaws.auth.AWSCredentials
 import com.n3integration.gradle.ecs.AWSAware
 import org.gradle.api.DefaultTask
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
 
 /**
  * Base implementation for AWS related tasks
  */
 class DefaultAWSTask extends DefaultTask implements AWSAware {
 
+    private static Logger logger = Logging.getLogger(DefaultAWSTask)
+
     AWSCredentials credentials
 
+    /**
+     * Retrieves the {@link AWSCredentials} for the current session. Either
+     * @{code ecs.credentials}, {@code ecs.securityTokenCredentials} or
+     * default credentials.
+     *
+     * @return the {@link AWSCredentials}
+     */
     def AWSCredentials getCredentials() {
         if(credentials == null) {
             if(project.ecs.credentials) {
+                logger.info("Found credentials.")
                 credentials = project.ecs.credentials.toCredentials()
             }
+            else if(project.ecs.securityTokenCredentials) {
+                logger.info("Found STS credentials.")
+                credentials = project.ecs.securityTokenCredentials.toCredentials()
+            }
             else {
+                logger.info("Resolving default credentials")
                 credentials = defaultCredentials()
             }
         }

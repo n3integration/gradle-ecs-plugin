@@ -1,10 +1,11 @@
 # gradle-ecs-plugin
 [ ![Codeship Status for n3integration/gradle-ecs-plugin](https://codeship.com/projects/977c2ec0-f694-0133-1e27-5e1b5517d789/status?branch=master)](https://codeship.com/projects/150599) [ ![Download](https://api.bintray.com/packages/n3integration/maven/gradle-ecs-plugin/images/download.svg) ](https://bintray.com/n3integration/maven/gradle-ecs-plugin/_latestVersion)
 
-Gradle plugin for Elastic Container Service (ECS) provisioning. This project was heavily inspired by [docker-compose](https://docs.docker.com/compose/).
+Gradle plugin for Elastic Container Service (ECS) provisioning. This project was heavily inspired by [docker-compose](https://docs.docker.com/compose/). Don't see a feature that you would really need to fully make use of the plugin in your environment? Create an [issue](https://github.com/n3integration/gradle-ecs-plugin/issues/new). Pull requests are also welcome.
 
 - [Usage](#usage)
 	- [Project Configuration](#project-configuration)
+	- [Security Token Service](#security-token-service)
 	- [ECS Cluster Definitions](#ecs-cluster-definitions)
 	- [Container Definitions](#container-definitions)
 - [Task Types](#task-types)
@@ -17,6 +18,9 @@ Gradle plugin for Elastic Container Service (ECS) provisioning. This project was
 ### Usage
 The AWS credentials are pulled from either environment variables or from a `~/.aws/credentials` file. Refer to Amazon's [official](http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#cli-environment) documentation for more information.
 
+#### Prerequisites
+Tested with Gradle versions 2.12+.
+
 #### Project Configuration
 The following should be placed at the head of your `build.gradle` file to include the plugin dependency into your Gradle project.
 
@@ -26,11 +30,24 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath "com.n3integration:gradle-ecs-plugin:0.6.0"
+        classpath "com.n3integration:gradle-ecs-plugin:0.7.0"
     }
 }
 
 apply plugin: 'aws-ecs'
+```
+
+#### Security Token Service
+If you are using the Security Token Service and have predefined roles, you can specify the role ARN as well as the STS endpoint (optional) and a session name (optional). The default values are displayed below.
+
+```gradle
+ecs {
+	assumeRole {
+		endpoint = "sts.us-east-1.amazonaws.com"
+		roleArn = "arn:aws:iam::012345678901:role/Developer"
+		sessionName = "session"		
+	}
+}
 ```
 
 #### ECS Cluster Definitions
@@ -42,54 +59,54 @@ Additionally, `t2.micro` ec2 instances are provisioned if an `instanceType` is n
 
 ```gradle
 ecs {
-    clusters {
-        dev {
-            region = "us-west-1"
-            instanceSettings {
-                ami = "ami-68106908"
-                securityGroups = ["sg-abcd1234"]
-                iamInstanceProfileArn = "arn:aws:iam::01234567890123:instance-profile/EcsDeveloper"
-                autoScaling {
-                    min = 1
-                    max = 1
-                    subnetIds = ["subnet-abcd123"]
-                }
-            }
-            containers {
-                "dockercloud-hello-world" {
-                    instances = 1
-                    image = "dockercloud/hello-world"
-                    ports = ["80:8080"]
-                }
-            }
+  clusters {
+    dev {
+      region = "us-west-1"
+      instanceSettings {
+        ami = "ami-68106908"
+        securityGroups = ["sg-abcd1234"]
+        iamInstanceProfileArn = "arn:aws:iam::01234567890123:instance-profile/EcsDeveloper"
+        autoScaling {
+          min = 1
+          max = 1
+          subnetIds = ["subnet-abcd123"]
         }
-        test {
-          region = "us-east-1"
-          instanceSettings {
-              instanceType = "t2.small"
-              securityGroups = ["sg-1234abcd"]
-              iamInstanceProfileArn = "arn:aws:iam::01234567890123:instance-profile/EcsTester"
-              autoScaling {
-                  min = 2
-                  max = 4
-                  subnetIds = ["subnet-123abcd", "subnet-234bcde"]
-              }
-              tag {
-                key = "meta"
-                value = "DO NOT DELETE"
-              }
-          }
-          containers {
-              "dockercloud-hello-world" {
-                  cpu = 10
-                  memory = 64
-                  instances = 2
-                  image = "dockercloud/hello-world"
-                  ports = ["80:80"]
-              }
-          }
+      }
+      containers {
+        "dockercloud-hello-world" {
+          instances = 1
+          image = "dockercloud/hello-world"
+          ports = ["80:8080"]
         }
+      }
     }
+    test {
+      region = "us-east-1"
+      instanceSettings {
+        instanceType = "t2.small"
+        securityGroups = ["sg-1234abcd"]
+        iamInstanceProfileArn = "arn:aws:iam::01234567890123:instance-profile/EcsTester"
+        autoScaling {
+          min = 2
+          max = 4
+          subnetIds = ["subnet-123abcd", "subnet-234bcde"]
+        }
+        tag {
+          key = "meta"
+          value = "DO NOT DELETE"
+        }
+      }
+      containers {
+        "dockercloud-hello-world" {
+          cpu = 10
+          memory = 64
+          instances = 2
+          image = "dockercloud/hello-world"
+          ports = ["80:80"]
+        }
+      }
+    }
+  }
 }
 ```
 

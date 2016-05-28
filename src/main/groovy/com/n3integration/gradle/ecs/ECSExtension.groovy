@@ -51,7 +51,7 @@ class ECSExtension {
         clone()
     }
 
-    void securityTokenCredentials(@DelegatesTo(SecurityTokenCredentials) Closure closure) {
+    void assumeRole(@DelegatesTo(SecurityTokenCredentials) Closure closure) {
         this.securityTokenCredentials = new SecurityTokenCredentials()
         def clone = closure.rehydrate(securityTokenCredentials, this, this)
         clone.resolveStrategy = Closure.DELEGATE_ONLY

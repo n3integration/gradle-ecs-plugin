@@ -30,16 +30,18 @@ import java.nio.file.Paths
 import java.nio.file.attribute.PosixFilePermission
 
 /**
+ * Trait responsible for managing ec2 instances
  *
  * @author n3integration
  */
 trait Ec2Aware extends AWSAware {
 
     /**
+     * Initializes a new {@link AmazonEC2Client}
      *
      * @param cluster
      *          the {@link Cluster} definition
-     * @return
+     * @return a {@link AmazonEC2Client}
      */
     def AmazonEC2Client createEc2Client(Cluster cluster) {
         new AmazonEC2Client(credentials())
@@ -47,12 +49,14 @@ trait Ec2Aware extends AWSAware {
     }
 
     /**
+     * Creates a private/public key pair and persists the private key within the
+     * user's home directory under {@code ~/.ecs/<cluster name>.pem}
      *
      * @param client
      *          the {@link AmazonEC2Client} instance
      * @param cluster
      *          the {@link Cluster} definition
-     * @return
+     * @return the path to the private key
      */
     def String createKeyPairIfNecessary(AmazonEC2Client client, Cluster cluster) {
         def privateKey = privateKeyFile(cluster)
@@ -83,12 +87,14 @@ trait Ec2Aware extends AWSAware {
     }
 
     /**
+     * Creates ec2 instances using the criteria defined within the {@code cluster.instanceSettings}
+     * block
      *
      * @param client
      *          the {@link AmazonEC2Client} instance
      * @param cluster
      *          the {@link Cluster} definition
-     * @return
+     * @return the {@link List} of running ec2 instances
      */
     def List<Instance> createEc2Instances(AmazonEC2Client client, Cluster cluster) {
         def instanceSettings = cluster.instanceSettings
@@ -108,11 +114,13 @@ trait Ec2Aware extends AWSAware {
     }
 
     /**
+     * Terminates a {@link List} of ec2 instances
      *
      * @param client
      *          the {@link AmazonEC2Client} instance
      * @param instanceIds
-     * @return
+     *          the {@link List} of ec2 instances to terminate
+     * @return the {@link TerminateInstancesResult}
      */
     def TerminateInstancesResult deleteEc2Instances(AmazonEC2Client client, List<String> instanceIds) {
         client.terminateInstances(new TerminateInstancesRequest()

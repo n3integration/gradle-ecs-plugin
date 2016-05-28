@@ -18,21 +18,23 @@ package com.n3integration.gradle.ecs.models
 
 import com.amazonaws.auth.AWSCredentials
 import com.amazonaws.auth.BasicSessionCredentials
+import com.n3integration.gradle.ecs.RoleAware
 
 /**
  * Allows users to define role-based credentials within their build.gradle files
  *
  * @author n3integration
  */
-class SecurityTokenCredentials extends Credentials {
+class SecurityTokenCredentials extends Credentials implements RoleAware {
 
     String roleArn
-    String sessionToken
-    String roleSessionName = "session"
+    String endpoint = "sts.us-east-1.amazonaws.com"
+    String sessionName = "session"
 
     def AWSCredentials toCredentials() {
-        if(sessionToken) {
-            new BasicSessionCredentials(this.accessKeyId, this.secretKey, this.sessionToken)
+        if(roleArn) {
+            def credentials = assumeRole(this)
+            new BasicSessionCredentials(credentials.accessKeyId, credentials.secretAccessKey, credentials.sessionToken)
         }
         else {
             super.toCredentials()
