@@ -52,7 +52,7 @@ dependencies {
 }
 
 group   = "com.n3integration"
-version = "0.6.0"
+version = "0.7.0"
 
 ext.compatibilityVersion = "1.7"
 sourceCompatibility = compatibilityVersion
@@ -93,4 +93,9 @@ task wrapper(type: Wrapper) {
 task sourceJar(type: Jar) {
     from sourceSets.main.allGroovy
     classifier "sources"
+}
+
+task docJar(type: Jar, dependsOn: "javadoc") {
+    from sourceSets.main.allGroovy
+    classifier "javadoc"
 }
