@@ -20,6 +20,7 @@ import com.google.common.base.Strings
 import com.n3integration.gradle.ecs.AutoScaleAware
 import com.n3integration.gradle.ecs.Ec2Aware
 import com.n3integration.gradle.ecs.models.Cluster
+import com.n3integration.gradle.ecs.models.Container
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
@@ -30,9 +31,7 @@ import org.gradle.api.tasks.TaskAction
  */
 class ScaleTask extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
 
-    int instances
-    String container
-    String containerGroup
+    Container container
 
     ScaleTask() {
         this.description = "Scales the number of running containers or groups"
@@ -42,21 +41,33 @@ class ScaleTask extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
     def scaleClusterAction() {
         ensureClusterName()
 
-        if(Strings.isNullOrEmpty(container) && Strings.isNullOrEmpty(containerGroup)) {
-            throw new GradleException("a container or group is required for container scaling")
+        if(container) {
+            if(Strings.isNullOrEmpty(container.name) && Strings.isNullOrEmpty(container.group)) {
+                throw new GradleException("a container name or group is required for container scaling")
+            }
+        }
+        else {
+            throw new GradleException("a container definition is required for scaling")
         }
 
         Cluster cluster = project.ecs.clusters.findByName(cluster)
 
         logger.quiet("Scaling ${serviceName()} service...")
         def ecsClient = createEcsClient(cluster)
-        scaleServices(ecsClient, cluster.name, Collections.singletonList(serviceName()), instances)
+        scaleServices(ecsClient, cluster.name, Collections.singletonList(serviceName()), container.instances)
+    }
+
+    def container(@DelegatesTo(Container) Closure closure) {
+        this.container = new Container()
+        def clone = closure.rehydrate(this.container, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_ONLY
+        clone()
     }
 
     private String serviceName() {
-        if(Strings.isNullOrEmpty(containerGroup)) {
-            return container
+        if(Strings.isNullOrEmpty(container.group)) {
+            return container.name
         }
-        return containerGroup
+        return container.group
     }
 }
