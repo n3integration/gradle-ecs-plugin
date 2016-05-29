@@ -32,8 +32,7 @@ class Container {
     public static final int MINIMUM_MIB_SIZE = 64
     public static final int DEFAULT_MIB_SIZE = 128
 
-    final String name
-
+    String name
     String image
     String group
     String hostname
@@ -46,6 +45,10 @@ class Container {
     List<String> links = []
     String workdir
     Map<String, String> environment = [:]
+
+    Container() {
+        this("unspecified")
+    }
 
     Container(name) {
         this.name = name
@@ -71,7 +74,7 @@ class Container {
             definition.image = image
         }
         else {
-            throw new GradleException("${name} container is missing image")
+            throw new GradleException("${name} container is missing an image name")
         }
         if(!Strings.isNullOrEmpty(hostname)) {
             definition.hostname = hostname

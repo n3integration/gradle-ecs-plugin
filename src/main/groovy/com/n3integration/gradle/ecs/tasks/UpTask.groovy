@@ -24,6 +24,8 @@ import org.gradle.api.tasks.TaskAction
 
 import java.nio.file.Files
 
+import static java.util.Collections.*
+
 /**
  * Responsible for registering task definitions, creating services, and starting
  * the registered tasks.
@@ -31,6 +33,8 @@ import java.nio.file.Files
  * @author n3integration
  */
 class UpTask extends DefaultClusterTask implements ECSAware {
+
+    Container container
 
     UpTask() {
         this.description = "Creates the ECS task definition, service, and starts the containers, if necessary"
@@ -40,29 +44,45 @@ class UpTask extends DefaultClusterTask implements ECSAware {
     def upAction() {
         Files.createDirectories(taskDefDir.toPath())
         super.execute { AmazonECSClient ecsClient, Cluster _cluster ->
-            _cluster.containers.groupBy { container ->
-                container.familySuffix()
-            }.each { familySuffix, containers ->
-                logger.quiet("Registering task definition ${familySuffix}...")
-                def taskDef = createTaskDefinition(ecsClient, _cluster, familySuffix, containers)
-                logger.quiet("\t  family: ${taskDef.family}")
-                logger.quiet("\trevision: ${taskDef.revision}")
-                logger.quiet("\t  status: ${taskDef.status}")
-
-                logger.quiet("Creating ${familySuffix} service...")
-                def count =  getInstanceCount(containers)
-                def service = createService(ecsClient, _cluster, familySuffix, count, taskDef)
-                logger.quiet("\t   arn: ${service.serviceArn}")
-                logger.quiet("\tstatus: ${service.status}")
-
-                logger.quiet("Starting ${_cluster.name} tasks...")
-                def tasks = startTasks(ecsClient, _cluster, count, taskDef)
-                tasks.each { task ->
-                    logger.quiet("\t   created: ${task.createdAt}")
-                    logger.quiet("\t    status: ${task.lastStatus}")
-                    logger.quiet("\tcontainers: ${task.containers}")
+            if(container) {
+                up(ecsClient, _cluster, container.familySuffix(), singletonList(container))
+            }
+            else {
+                _cluster.containers.groupBy { container ->
+                    container.familySuffix()
+                }.each { familySuffix, containers ->
+                    up(ecsClient, _cluster, familySuffix, containers)
                 }
             }
+        }
+    }
+
+    def container(@DelegatesTo(Container) Closure closure) {
+        this.container = new Container()
+        def clone = closure.rehydrate(this.container, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_ONLY
+        clone()
+    }
+
+    def up(AmazonECSClient ecsClient, Cluster _cluster, String familySuffix, List<Container> containers) {
+        logger.quiet("Registering task definition ${familySuffix}...")
+        def taskDef = createTaskDefinition(ecsClient, _cluster, familySuffix, containers)
+        logger.quiet("\t  family: ${taskDef.family}")
+        logger.quiet("\trevision: ${taskDef.revision}")
+        logger.quiet("\t  status: ${taskDef.status}")
+
+        logger.quiet("Creating ${familySuffix} service...")
+        def count =  getInstanceCount(containers)
+        def service = createService(ecsClient, _cluster, familySuffix, count, taskDef)
+        logger.quiet("\t   arn: ${service.serviceArn}")
+        logger.quiet("\tstatus: ${service.status}")
+
+        logger.quiet("Starting ${_cluster.name} tasks...")
+        def tasks = startTasks(ecsClient, _cluster, count, taskDef)
+        tasks.each { task ->
+            logger.quiet("\t   created: ${task.createdAt}")
+            logger.quiet("\t    status: ${task.lastStatus}")
+            logger.quiet("\tcontainers: ${task.containers}")
         }
     }
 

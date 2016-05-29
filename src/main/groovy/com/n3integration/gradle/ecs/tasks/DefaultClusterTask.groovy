@@ -16,6 +16,7 @@
  */
 package com.n3integration.gradle.ecs.tasks
 
+import com.google.common.base.Strings
 import com.n3integration.gradle.ecs.ECSAware
 import com.n3integration.gradle.ecs.models.Cluster
 import org.gradle.api.GradleException
@@ -33,21 +34,31 @@ class DefaultClusterTask extends DefaultAWSTask implements ECSAware {
 
     def execute(action) {
         ensureClusterName()
-        Cluster cluster = project.ecs.clusters.findByName(cluster)
-        action(createEcsClient(cluster), cluster)
+        Cluster _cluster = getTaskCluster()
+        action(createEcsClient(_cluster), _cluster)
     }
 
     def void ensureClusterName() {
-        if (cluster == null) {
+        if (Strings.isNullOrEmpty(cluster)) {
             if (defaultClusterProvided()) {
-                cluster = project.ecs.defaultCluster.name
-            } else {
-                throw new GradleException("missing cluster; a defaultCluster or task cluster is required")
+                this.cluster = project.ecs.defaultCluster.name
+            }
+            else {
+                throw new GradleException("a task cluster is required")
             }
         }
     }
 
-    private boolean defaultClusterProvided() {
+    def boolean defaultClusterProvided() {
         project.ecs && project.ecs.defaultCluster
+    }
+
+    def Cluster getTaskCluster() {
+        try {
+            return project.ecs.clusters.findByName(cluster)
+        }
+        catch(Exception e) {
+            return new Cluster(cluster)
+        }
     }
 }

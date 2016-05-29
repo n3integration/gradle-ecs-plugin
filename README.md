@@ -1,7 +1,7 @@
 # gradle-ecs-plugin
 [ ![Codeship Status for n3integration/gradle-ecs-plugin](https://codeship.com/projects/977c2ec0-f694-0133-1e27-5e1b5517d789/status?branch=master)](https://codeship.com/projects/150599) [ ![Download](https://api.bintray.com/packages/n3integration/maven/gradle-ecs-plugin/images/download.svg) ](https://bintray.com/n3integration/maven/gradle-ecs-plugin/_latestVersion)
 
-Gradle plugin for Elastic Container Service (ECS) provisioning. This project was heavily inspired by [docker-compose](https://docs.docker.com/compose/). Don't see a feature that you would really need to fully make use of the plugin in your environment? Create an [issue](https://github.com/n3integration/gradle-ecs-plugin/issues/new). Pull requests are also welcome.
+Gradle plugin for Elastic Container Service (ECS) provisioning. This project was heavily inspired by [docker-compose](https://docs.docker.com/compose/). Don't see a feature that you would really like to see in your environment? Create an [issue](https://github.com/n3integration/gradle-ecs-plugin/issues/new). Pull requests are also welcome.
 
 - [Usage](#usage)
 	- [Project Configuration](#project-configuration)
@@ -111,6 +111,8 @@ ecs {
 ```
 
 #### Container Definitions
+The following container properties are available:
+
 <dl>
   <dt>image</dt>
   <dd>The docker image. Required</dd>
@@ -155,7 +157,9 @@ task createCluster(type: CreateCluster) {
 ```
 
 #### Up
-Registers and starts the containers associated with the task's `cluster`. This task references named clusters defined within the `ecs.clusters` block.
+Registers and starts the containers associated with the task's `cluster`. This task references named clusters defined within the `ecs.clusters` block if the container is left unspecified.
+
+##### Entire Cluster
 
 ```gradle
 task up(type: Up) {
@@ -163,19 +167,37 @@ task up(type: Up) {
 }
 ```
 
+##### Single Container
+
+```gradle
+task dbUp(type: Up) {
+    cluster = "dev"
+    container {
+        name = "redis"
+        image = "redis"
+        instances = 1
+        ports = ["6379:6379"]
+    }		
+}
+```
+
 #### Scale
-Scales the number of running containers with a `cluster`.
+Scales the number of running containers with a `cluster`. This task applies only to a single container.
 
 ```gradle
 task scale2x(type: Scale) {
     cluster = "dev"
-    container = "dockercloud-hello-world"
-    instances = 2
+    container {
+        name = "dockercloud-hello-world"
+        instances = 2
+    }
 }
 ```
 
 #### Down
-Unregisters and terminates the containers associated with the task's `cluster`. This task references named clusters defined within the `ecs.clusters` block.
+Unregisters and terminates the containers associated with the task's `cluster`. This task references named clusters defined within the `ecs.clusters` block if the container is left unspecified.
+
+##### Entire Cluster
 
 ```gradle
 task down(type: Down) {
@@ -183,8 +205,19 @@ task down(type: Down) {
 }
 ```
 
+##### Single Container
+
+```gradle
+task dbDown(type: Up) {
+    cluster = "dev"
+    container {
+        name = "redis"
+    }
+}
+```
+
 #### DeleteCluster
-Deletes an existing EC2 Container Service cluster. If a `autoScaling` group is defined for the cluster, the associated ec2 instances will be terminated. This task references named clusters defined within the `ecs.clusters` block.
+Deletes an existing EC2 Container Service cluster. This task references named clusters defined within the `ecs.clusters` block. If an `autoScaling` group is defined for the cluster, it's associated ec2 instances will be terminated.
 
 ```gradle
 task deleteCluster(type: DeleteCluster) {

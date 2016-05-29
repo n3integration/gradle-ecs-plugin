@@ -106,10 +106,24 @@ trait ECSAware extends AWSAware {
             .withCluster(cluster.name))
 
         services.serviceArns.each { service ->
-            client.deleteService(new DeleteServiceRequest()
-                .withCluster(cluster.name)
-                .withService(service))
+            deleteService(client, cluster.name, service)
         }
+    }
+
+    /**
+     * Deletes a single service
+     *
+     * @param client
+     *          the {@link AmazonECSClient} instance
+     * @param clusterName
+     *          the {@link Cluster} name
+     * @param service
+     *          the service name or ARN
+     */
+    def void deleteService(AmazonECSClient client, String clusterName, String service) {
+        client.deleteService(new DeleteServiceRequest()
+            .withCluster(clusterName)
+            .withService(service))
     }
 
     /**

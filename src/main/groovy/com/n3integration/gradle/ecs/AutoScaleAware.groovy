@@ -151,7 +151,8 @@ trait AutoScaleAware extends AWSAware {
      */
     def void deleteAutoScalingGroup(AmazonAutoScalingClient client, Ec2InstanceSettings settings) {
         client.deleteAutoScalingGroup(new DeleteAutoScalingGroupRequest()
-            .withAutoScalingGroupName(getAsgCfgName(settings)))
+            .withAutoScalingGroupName(getAsgCfgName(settings))
+            .withForceDelete(true))
     }
 
     private String getLaunchCfgName(Ec2InstanceSettings settings) {

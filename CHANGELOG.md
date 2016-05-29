@@ -1,6 +1,7 @@
 # Version 0.7.0
-* Support for the Security Token Service
-* 
+* Support for Security Token Service
+* Ability to register a single container in `up` task
+* Ability to teardown a single container in `down` task
 
 # Version 0.6.0
 * Support for scaling containers

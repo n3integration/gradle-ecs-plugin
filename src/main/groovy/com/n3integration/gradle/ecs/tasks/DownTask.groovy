@@ -17,9 +17,12 @@
 package com.n3integration.gradle.ecs.tasks
 
 import com.amazonaws.services.ecs.AmazonECSClient
+import com.google.common.base.Strings
 import com.n3integration.gradle.ecs.AutoScaleAware
 import com.n3integration.gradle.ecs.Ec2Aware
 import com.n3integration.gradle.ecs.models.Cluster
+import com.n3integration.gradle.ecs.models.Container
+import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 
 /**
@@ -29,6 +32,8 @@ import org.gradle.api.tasks.TaskAction
  */
 class DownTask extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
 
+    Container container
+
     DownTask() {
         this.description = "Shuts down running ECS tasks and services"
     }
@@ -36,21 +41,48 @@ class DownTask extends DefaultClusterTask implements AutoScaleAware, Ec2Aware {
     @TaskAction
     def downClusterAction() {
         super.execute { AmazonECSClient ecsClient, Cluster _cluster ->
-            def instanceSettings = _cluster.instanceSettings
-            if(instanceSettings && instanceSettings.autoScaling) {
-                instanceSettings.autoScaling.min = 0
+            if(container) {
+                def service = container.familySuffix()
+                if(Strings.isNullOrEmpty(service)) {
+                    throw new GradleException("a container or group name is required")
+                }
 
                 logger.quiet("Scaling back ${cluster} services...")
-                scaleServices(ecsClient, _cluster)
+                scaleServices(ecsClient, _cluster.name, Collections.singletonList(service), 0)
 
                 logger.quiet("Deleting ${cluster} services...")
-                deleteServices(ecsClient, _cluster)
+                deleteService(ecsClient, _cluster.name, service)
 
-                logger.quiet("Unregistering ${cluster} tasks...")
-                _cluster.families().each { family ->
-                    unregisterTasks(ecsClient, family)
+                unregister(ecsClient, Collections.singletonList("${cluster}-${service}"))
+            }
+            else {
+                def instanceSettings = _cluster.instanceSettings
+                if(instanceSettings && instanceSettings.autoScaling) {
+                    instanceSettings.autoScaling.min = 0
+
+                    logger.quiet("Scaling back ${cluster} services...")
+                    scaleServices(ecsClient, _cluster)
+
+                    logger.quiet("Deleting ${cluster} services...")
+                    deleteServices(ecsClient, _cluster)
+
+                    unregister(ecsClient, _cluster.families())
                 }
             }
+        }
+    }
+
+    def container(@DelegatesTo(Container) Closure closure) {
+        this.container = new Container()
+        def clone = closure.rehydrate(this.container, this, this)
+        clone.resolveStrategy = Closure.DELEGATE_ONLY
+        clone()
+    }
+
+    def unregister(AmazonECSClient ecsClient, List<String> families) {
+        logger.quiet("Unregistering ${cluster} tasks...")
+        families.each { family ->
+            unregisterTasks(ecsClient, family)
         }
     }
 }
